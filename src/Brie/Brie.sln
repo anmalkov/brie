@@ -3,11 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33006.217
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brie.Ui", "Brie.Ui\Brie.Ui.csproj", "{D3441F92-B92A-465B-8174-2E352E15B2C7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brie.Ui", "Brie.Ui\Brie.Ui.csproj", "{D3441F92-B92A-465B-8174-2E352E15B2C7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brie.Core", "Brie.Core\Brie.Core.csproj", "{2DCF0E3F-F529-4D95-81AD-C5061CAD03F5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brie.Core", "Brie.Core\Brie.Core.csproj", "{2DCF0E3F-F529-4D95-81AD-C5061CAD03F5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Brie.Core.Tests", "Brie.Core.Tests\Brie.Core.Tests.csproj", "{56D34E87-76D1-4E11-896C-593AEFE6EDD8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brie.Core.Tests", "Brie.Core.Tests\Brie.Core.Tests.csproj", "{56D34E87-76D1-4E11-896C-593AEFE6EDD8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{A27DBD2D-A14B-440E-8DC6-56C049C7BEDF}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		Dockerfile = Dockerfile
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
