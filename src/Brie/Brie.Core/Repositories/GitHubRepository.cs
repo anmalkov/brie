@@ -2,8 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http.Json;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
 namespace Brie.Core.Repositories;
@@ -22,10 +24,25 @@ public class GitHubRepository : IGitHubRepository
         _httpClient.DefaultRequestHeaders.Add("Host", "api.github.com");
     }
 
-    //public async Task<GitHubDirectory> GetDirectoryAsync()
-    //{
-    //    return await GetDirectoryAsync("Security Domain", "https://api.github.com/repos/anmalkov/brief/contents/Security%20Domain?ref=main");
-    //}
+    public Task<GitHubDirectory> GetContentAsync(string accountName, string repositoryName, string folderName)
+    {
+        if (string.IsNullOrWhiteSpace(accountName))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(accountName));
+        }
+        if (string.IsNullOrWhiteSpace(repositoryName))
+        {
+            throw new ArgumentException("Value cannot be null or whitespace.", nameof(repositoryName));
+        }
+        if (string.IsNullOrWhiteSpace(folderName))
+        {
+            folderName = ".";
+        }
+        
+        var url = $"https://api.github.com/repos/{accountName}/{repositoryName}/contents/{Uri.EscapeDataString(folderName)}";
+        var directoryName = folderName.Split('/').Last();
+        return GetDirectoryAsync(directoryName, url);
+    }
 
     private async Task<GitHubDirectory> GetDirectoryAsync(string name, string url)
     {
@@ -57,4 +74,5 @@ public class GitHubRepository : IGitHubRepository
         var content = Encoding.UTF8.GetString(Convert.FromBase64String(dto!.Content ?? ""));
         return new GitHubFile(dto!.Name, content);
     }
+
 }

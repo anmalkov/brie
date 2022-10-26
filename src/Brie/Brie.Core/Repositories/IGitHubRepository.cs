@@ -4,5 +4,5 @@ namespace Brie.Core.Repositories;
 
 public interface IGitHubRepository
 {
-    Task<GitHubDirectory> GetDirectoryAsync(string name, string url);
+    Task<GitHubDirectory> GetContentAsync(string accountName, string repositoryName, string folderName);
 }

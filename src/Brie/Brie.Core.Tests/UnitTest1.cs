@@ -7,9 +7,16 @@ public class UnitTest1
     [Fact]
     public async Task Test1()
     {
+        var directoryName = "Security Domain";
+
         var httpClient = new HttpClient();
         var repository = new GitHubRepository(httpClient);
 
-        var directory = await repository.GetDirectoryAsync();
+        var directory = await repository.GetContentAsync("anmalkov", "brief", directoryName);
+
+        Assert.NotNull(directory);
+        Assert.Equal(directoryName, directory.Name);
+        Assert.NotNull(directory.Directories);
+        Assert.True(directory.Directories.Count() > 0);
     }
 }

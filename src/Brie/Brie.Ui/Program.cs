@@ -1,26 +1,30 @@
+using Brie.Core.Repositories;
+using Brie.Core.Services;
+using Brie.Ui.Extensions;
+using Brie.Ui.Requests;
+using MediatR;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddMediatR(m => m.AsScoped(), typeof(Program));
+builder.Services.AddMemoryCache();
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddSingleton<IGitHubRepository, GitHubRepository>();
+builder.Services.AddSingleton<ICategoriesRepository, CategoriesRepository>();
+
+builder.Services.AddScoped<ICategoriesService, CategoriesService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseRouting();
 
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller}/{action=Index}/{id?}");
+app.MediateGet<GetCategoriesRequest>("/api/categories");
 
 app.MapFallbackToFile("index.html");
 
