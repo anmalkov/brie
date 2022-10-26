@@ -1,22 +1,26 @@
 import React, { Component } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import AppRoutes from './AppRoutes';
+import { QueryClient, QueryClientProvider } from 'react-query';
 import { Layout } from './components/Layout';
 import './custom.css';
 
-export default class App extends Component {
-  static displayName = App.name;
+const App = () => {
 
-  render() {
+    const queryClient = new QueryClient();
+
     return (
-      <Layout>
-        <Routes>
-          {AppRoutes.map((route, index) => {
-            const { element, ...rest } = route;
-            return <Route key={index} {...rest} element={element} />;
-          })}
-        </Routes>
-      </Layout>
+        <QueryClientProvider client={queryClient}>
+          <Layout>
+            <Routes>
+              {AppRoutes.map((route, index) => {
+                const { element, ...rest } = route;
+                return <Route key={index} {...rest} element={element} />;
+              })}
+            </Routes>
+          </Layout>
+        </QueryClientProvider>
     );
-  }
 }
+
+export default App;
