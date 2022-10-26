@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddMediatR(m => m.AsScoped(), typeof(Program));
 builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<IGitHubRepository, GitHubRepository>();
 builder.Services.AddSingleton<ICategoriesRepository, CategoriesRepository>();
