@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Spinner, ListGroup, ListGroupItem, Badge, Input } from 'reactstrap';
+import React, { useState } from 'react';
+import { Spinner, ListGroup, Alert, Button, Badge } from 'reactstrap';
 import { useQuery } from 'react-query';
 import { fetchCategory } from '../fetchers/categories';
 import Category from './Category';
+import { useEffect } from 'react';
 
 const Recommendations = () => {
 
-    const { isError, isLoading, data, error } = useQuery(['category'], fetchCategory);
+    const { isError, isLoading, data, error } = useQuery(['category'], fetchCategory, { staleTime: 24*60*60*1000 });
     const category = data;
 
     const [selectedList, setSelectedList] = useState([]);
@@ -35,6 +36,22 @@ const Recommendations = () => {
         return selectedList.includes(id);
     }
 
+    const getSelectedRecommendations = (category) => {
+        if (!category) {
+            return [];
+        }
+        let recommendations = [...category.recommendations.filter(r => isSelected(r.id))];
+        category.children.forEach(c => recommendations = [...recommendations, ...getSelectedRecommendations(c)]);
+        return recommendations;
+    }
+
+    useEffect(() => {
+        if (!category) {
+            return;
+        }
+        setSelectedList(getChildrenIds(category));
+    }, [data]);
+
     if (isLoading) {
         return (
             <div className="text-center">
@@ -45,21 +62,36 @@ const Recommendations = () => {
         );
     }
 
-    if (!category) {
+    if (isError) {
         return (
-            <div>
-                <p>There are no recommendations</p>
-            </div>
+            <Alert color = "danger">{error.message}</Alert >
         );
     }
 
+    const selectedRecommendations = getSelectedRecommendations(category);
+    const selectedRecommendationsCount = selectedRecommendations.length;
+
     return (
         <div>
-            <ListGroup flush>
-                {category.children.map(c => (
-                    <Category key={c.id} category={c} isSelected={isSelected} toggleSelectability={toggleSelectability} />
-                ))}
-            </ListGroup>
+            {!category ? (
+                <p>There are no recommendations</p>
+            ) : (
+                <>
+                        {selectedRecommendationsCount > 0 ? (
+                            <div className="d-flex justify-content-between align-items-center py-2 px-3 border-bottom border-3 border-dark mb-2" style={{ backgroundColor: '#efefef' }}>
+                            <span>Selected recommendations <Badge color="primary" style={{fontSize: '0.95em'}} className="ms-2">{selectedRecommendationsCount}</Badge></span>
+                            <Button color="success">Export</Button>
+                        </div>
+                    ) : null}
+                    <ListGroup flush>
+                    {/*    {category.children.map(c => (*/}
+                    {/*        <Category key={c.id} category={c} isSelected={isSelected} toggleSelectability={toggleSelectability} />*/}
+                    {/*    ))}*/}
+                            <Category category={category} isSelected={isSelected} toggleSelectability={toggleSelectability} />
+
+                    </ListGroup>
+                </>
+            )}
         </div>
     );
 };
