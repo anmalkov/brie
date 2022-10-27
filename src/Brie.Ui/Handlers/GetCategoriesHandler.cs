@@ -7,11 +7,13 @@ using System.Security.Cryptography.Xml;
 namespace Brie.Ui.Handlers
 {
     public record RecommendationDto(
+        Guid Id,
         string Title,
         string Description
     );
 
     public record CategoryDto(
+        Guid Id,
         string Name,
         string? Description,
         IEnumerable<CategoryDto>? Children,
@@ -36,6 +38,7 @@ namespace Brie.Ui.Handlers
         private static CategoryDto MapCategoryToDto(Category category)
         {
             return new CategoryDto(
+                Guid.NewGuid(),
                 category.Name,
                 category.Description,
                 category.Children?.Select(MapCategoryToDto),
@@ -46,6 +49,7 @@ namespace Brie.Ui.Handlers
         private static RecommendationDto MapRecommendationToDto(Recommendation recommendation)
         {
             return new RecommendationDto(
+                Guid.NewGuid(),
                 recommendation.Title,
                 recommendation.Description
             );
