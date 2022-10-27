@@ -9,6 +9,32 @@ const Recommendations = () => {
     const { isError, isLoading, data, error } = useQuery(['category'], fetchCategory);
     const category = data;
 
+    const [selectedList, setSelectedList] = useState([]);
+
+    const getChildrenIds = category => {
+        let ids = [category.id];
+        if (category.children) {
+            category.children.forEach(c => ids = [...ids, ...getChildrenIds(c)]);
+        }
+        if (category.recommendations) {
+            category.recommendations.forEach(r => ids = [...ids, r.id]);
+        }
+        return ids;
+    }
+
+    const toggleSelectability = selectedCategory => {
+        const toggledIds = getChildrenIds(selectedCategory);
+        if (selectedList.includes(selectedCategory.id)) {
+            setSelectedList(selectedList.filter(id => !toggledIds.includes(id)));
+        } else {
+            setSelectedList([...selectedList, ...toggledIds.filter(id => !selectedList.includes(id))]);
+        }
+    }
+
+    const isSelected = id => {
+        return selectedList.includes(id);
+    }
+
     if (isLoading) {
         return (
             <div className="text-center">
@@ -31,7 +57,7 @@ const Recommendations = () => {
         <div>
             <ListGroup flush>
                 {category.children.map(c => (
-                    <Category key={c.id} category={c} />
+                    <Category key={c.id} category={c} isSelected={isSelected} toggleSelectability={toggleSelectability} />
                 ))}
             </ListGroup>
         </div>
