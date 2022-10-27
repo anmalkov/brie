@@ -1,7 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { ListGroup, ListGroupItem, Badge, Input } from 'reactstrap';
 import Recommendation from './Recommendation';
-//import { FcFolder } from "react-icons/fc";
 
 const Category = ({ category, level, isSelected, toggleSelectability }) => {
 

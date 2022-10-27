@@ -84,11 +84,7 @@ const Recommendations = () => {
                         </div>
                     ) : null}
                     <ListGroup flush>
-                    {/*    {category.children.map(c => (*/}
-                    {/*        <Category key={c.id} category={c} isSelected={isSelected} toggleSelectability={toggleSelectability} />*/}
-                    {/*    ))}*/}
-                            <Category category={category} isSelected={isSelected} toggleSelectability={toggleSelectability} />
-
+                        <Category category={category} isSelected={isSelected} toggleSelectability={toggleSelectability} />
                     </ListGroup>
                 </>
             )}
