@@ -9,16 +9,6 @@ const Recommendations = () => {
     const { isError, isLoading, data, error } = useQuery(['category'], fetchCategory);
     const category = data;
 
-    const [collapsedList, setCollapsedList] = useState([]);
-
-    const toggleCollapsibility = id => {
-        if (collapsedList.includes(id)) {
-            setCollapsedList(collapsedList.filter(c => c != id));
-        } else {
-            setCollapsedList([...collapsedList, id]);
-        }
-    }
-
     if (isLoading) {
         return (
             <div className="text-center">
@@ -41,7 +31,7 @@ const Recommendations = () => {
         <div>
             <ListGroup flush>
                 {category.children.map(c => (
-                    <Category key={c.id} category={c} collapsedList={collapsedList} toggleCollapsibility={toggleCollapsibility} />
+                    <Category key={c.id} category={c} />
                 ))}
             </ListGroup>
         </div>
