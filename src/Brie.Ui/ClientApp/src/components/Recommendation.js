@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { ListGroup, ListGroupItem, Badge, Input } from 'reactstrap';
+import { ListGroupItem, Input } from 'reactstrap';
 import { FcFile } from "react-icons/fc";
 import ReactMarkdown from 'react-markdown'
 

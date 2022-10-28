@@ -8,6 +8,7 @@ namespace Brie.Core.Models;
 
 public record GitHubDirectory(
     string Name,
+    string Url,
     IEnumerable<GitHubDirectory>? Directories,
     IEnumerable<GitHubFile>? Files
 );

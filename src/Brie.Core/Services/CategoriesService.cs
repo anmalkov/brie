@@ -3,7 +3,9 @@ using Brie.Core.Repositories;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -49,6 +51,7 @@ public class CategoriesService : ICategoriesService
     private Category MapDirectoryToCategory(GitHubDirectory directory)
     {
         return new Category(
+            GenerateIdFor(directory.Url),
             directory.Name,
             "",
             directory.Directories?.Select(d => MapDirectoryToCategory(d)).ToList(),
@@ -56,9 +59,15 @@ public class CategoriesService : ICategoriesService
         );
     }
 
+    private static string GenerateIdFor(string text)
+    {
+        return string.Join("", (SHA1.HashData(Encoding.UTF8.GetBytes(text))).Select(b => b.ToString("x2")));
+    }
+
     private Recommendation MapFileToRecommendation(GitHubFile file)
     {
         return new Recommendation(
+            GenerateIdFor(file.Url),
             Path.GetFileNameWithoutExtension(file.Name),
             file.Content
         );

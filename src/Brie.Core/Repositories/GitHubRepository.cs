@@ -57,6 +57,7 @@ public class GitHubRepository : IGitHubRepository
         var directories = dtos!.Where(d => d.Type == "dir").Select(async d => await GetDirectoryAsync(d.Name, d.Url)).Select(t => t.Result).ToList();
         return new GitHubDirectory(
             name,
+            url,
             directories,
             files
         );
@@ -72,7 +73,7 @@ public class GitHubRepository : IGitHubRepository
 
         var dto = await response.Content.ReadFromJsonAsync<GitHubDto>();
         var content = Encoding.UTF8.GetString(Convert.FromBase64String(dto!.Content ?? ""));
-        return new GitHubFile(dto!.Name, content);
+        return new GitHubFile(dto!.Name, url, content);
     }
 
 }

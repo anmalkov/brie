@@ -4,6 +4,8 @@ import { useQuery } from 'react-query';
 import { fetchCategory } from '../fetchers/categories';
 import Category from './Category';
 import { useEffect } from 'react';
+import './Recommendations.css';
+
 
 const Recommendations = () => {
 
@@ -46,10 +48,10 @@ const Recommendations = () => {
     }
 
     useEffect(() => {
-        if (!category) {
+        if (!data) {
             return;
         }
-        setSelectedList(getChildrenIds(category));
+        setSelectedList(getChildrenIds(data));
     }, [data]);
 
     if (isLoading) {
@@ -77,9 +79,9 @@ const Recommendations = () => {
                 <p>There are no recommendations</p>
             ) : (
                 <>
-                        {selectedRecommendationsCount > 0 ? (
-                            <div className="d-flex justify-content-between align-items-center py-2 px-3 border-bottom border-3 border-dark mb-2" style={{ backgroundColor: '#efefef' }}>
-                            <span>Selected recommendations <Badge color="primary" style={{fontSize: '0.95em'}} className="ms-2">{selectedRecommendationsCount}</Badge></span>
+                    {selectedRecommendationsCount > 0 ? (
+                        <div className="d-flex justify-content-between align-items-center py-2 px-3 border-bottom border-3 border-dark mb-2 bg-super-light">
+                            <span>Selected recommendations <Badge color="primary" className="ms-2 fs-little-smaller">{selectedRecommendationsCount}</Badge></span>
                             <Button color="success">Export</Button>
                         </div>
                     ) : null}

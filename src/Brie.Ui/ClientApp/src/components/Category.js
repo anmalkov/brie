@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { ListGroup, ListGroupItem, Badge, Input } from 'reactstrap';
+import { ListGroupItem, Badge, Input } from 'reactstrap';
 import Recommendation from './Recommendation';
 
 const Category = ({ category, level, isSelected, toggleSelectability }) => {
