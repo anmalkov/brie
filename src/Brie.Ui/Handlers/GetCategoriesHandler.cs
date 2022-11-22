@@ -32,11 +32,15 @@ namespace Brie.Ui.Handlers
         public async Task<IResult> Handle(GetCategoriesRequest request, CancellationToken cancellationToken)
         {
             var category = await _categoriesService.GetAsync();
-            return Results.Ok(category is not null ? MapCategoryToDto(category) : null);
+            return Results.Ok(MapCategoryToDto(category));
         }
 
-        private static CategoryDto MapCategoryToDto(Category category)
+        private static CategoryDto? MapCategoryToDto(Category? category)
         {
+            if (category is null) {
+                return null;
+            }
+
             return new CategoryDto(
                 category.Id,
                 category.Name,

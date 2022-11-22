@@ -12,8 +12,10 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<IGitHubRepository, GitHubRepository>();
 builder.Services.AddSingleton<ICategoriesRepository, CategoriesRepository>();
+builder.Services.AddSingleton<IPlansRepository, PlansRepository>();
 
 builder.Services.AddScoped<ICategoriesService, CategoriesService>();
+builder.Services.AddScoped<IPlansService, PlansService>();
 
 var app = builder.Build();
 
@@ -26,6 +28,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.MediateGet<GetCategoriesRequest>("/api/categories");
+app.MediateGet<GetPlansRequest>("/api/plans");
 
 app.MapFallbackToFile("index.html");
 

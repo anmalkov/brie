@@ -4,51 +4,21 @@ using System.Text.Json;
 
 namespace Brie.Core.Repositories;
 
-public class CategoriesRepository : ICategoriesRepository
+public class CategoriesRepository : RepositoryBase<Category>, ICategoriesRepository
 {
-    private const string RepositoriedDirectoryName = "data";
     private const string RepositoryFilename = "categories.json";
 
-    private readonly string _repositoryFullFilename;
+    public CategoriesRepository() : base(RepositoryFilename) { }
 
 
-    public CategoriesRepository()
+    public new async Task<Category?> GetAllAsync()
     {
-        var repositoriesPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".", RepositoriedDirectoryName);
-        _repositoryFullFilename = Path.Combine(repositoriesPath, RepositoryFilename);
+        var categories = await base.GetAllAsync();
+        return categories is not null ? categories.First() : null;
     }
 
-
-    public async Task<Category?> GetAllAsync()
+    public new async Task UpdateAllAsync(Category category)
     {
-        return await LoadAsync();
-    }
-
-    public async Task UpdateAllAsync(Category category)
-    {
-        await SaveAsync(category ?? throw new ArgumentNullException(nameof(category)));
-    }
-
-    private async Task<Category?> LoadAsync()
-    {
-        if (!File.Exists(_repositoryFullFilename))
-        {
-            return null;
-        }
-
-        var json = await File.ReadAllTextAsync(_repositoryFullFilename);
-        return JsonSerializer.Deserialize<Category>(json);
-    }
-
-    private async Task SaveAsync(Category category)
-    {
-        var directoryName = Path.GetDirectoryName(_repositoryFullFilename);
-        if (!string.IsNullOrEmpty(directoryName) && !Directory.Exists(directoryName))
-        {
-            Directory.CreateDirectory(directoryName);
-        }
-
-        var json = JsonSerializer.Serialize(category);
-        await File.WriteAllTextAsync(_repositoryFullFilename, json.ToString());
+        await base.UpdateAllAsync(new[] { category });
     }
 }
