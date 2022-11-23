@@ -6,4 +6,4 @@ public record Category(
     string? Description,
     List<Category>? Children,
     List<Recommendation>? Recommendations
-);
+) : IStorableItem;

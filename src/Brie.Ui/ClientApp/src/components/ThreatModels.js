@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { Spinner, ListGroup, Alert, Button, Badge, NavLink } from 'reactstrap';
 import { useQuery } from 'react-query';
-import { fetchPlans } from '../fetchers/plans';
+import { fetchThreatModels } from '../fetchers/threatmodels';
 import { useNavigate } from 'react-router-dom';
 //import Category from './Category';
 //import { useEffect } from 'react';
 //import './Recommendations.css';
 
-const SecurityPlans = () => {
+const ThreatModels = () => {
 
     const navigate = useNavigate();
-    const { isError, isLoading, plans, error } = useQuery(['plans'], fetchPlans, { staleTime: 1 * 60 * 60 * 1000 });
+    const { isError, isLoading, threatmodels, error } = useQuery(['threatmodels'], fetchThreatModels, { staleTime: 1 * 60 * 60 * 1000 });
 
     if (isLoading) {
         return (
@@ -31,10 +31,10 @@ const SecurityPlans = () => {
     return (
         <>
             <div className="mb-3">
-                <Button color="success" onClick={() => navigate('/addplan')}>New plan</Button>
+                <Button color="success" onClick={() => navigate('/addthreatmodel')}>New threat model</Button>
             </div>
-            {!plans || plans.length == 0 ? (
-                <p>There are no security plans</p>
+            {!threatmodels || threatmodels.length == 0 ? (
+                <p>There are no threat models</p>
             ) : (
                 <>
                 </>
@@ -43,4 +43,4 @@ const SecurityPlans = () => {
     );
 };
 
-export default SecurityPlans;
+export default ThreatModels;

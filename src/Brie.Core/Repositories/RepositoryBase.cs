@@ -1,9 +1,10 @@
-﻿using System.Reflection;
+﻿using Brie.Core.Models;
+using System.Reflection;
 using System.Text.Json;
 
 namespace Brie.Core.Repositories;
 
-public class RepositoryBase<T> where T : class
+public class RepositoryBase<T> where T : class, IStorableItem
 {
     private const string RepositoriesDirectoryName = "data";
 
@@ -26,7 +27,41 @@ public class RepositoryBase<T> where T : class
     {
         await SaveAsync(items ?? throw new ArgumentNullException(nameof(items)));
     }
-    
+
+    public async Task AddAsync(T item)
+    {
+        var items = await LoadAsync();
+
+        //items!.TryAdd(item.Id, item);
+
+        //await SaveAsync();
+    }
+
+    public async Task UpdateAsync(T item)
+    {
+        await LoadAsync();
+
+        //if (_items!.ContainsKey(item.Id))
+        //{
+        //    _items.TryRemove(item.Id, out _);
+        //    _items.TryAdd(item.Id, item);
+        //}
+
+        //await SaveAsync();
+    }
+
+    public async Task DeleteAync(string id)
+    {
+        await LoadAsync();
+
+        //if (_items!.ContainsKey(id))
+        //{
+        //    _items.TryRemove(id, out _);
+        //    await SaveAsync();
+        //}
+    }
+
+
     private async Task<IEnumerable<T>?> LoadAsync()
     {
         if (!File.Exists(_repositoryFullFilename))

@@ -1,6 +1,6 @@
 import Home from "./components/Home";
-import SecurityPlans from "./components/SecurityPlans";
-import AddSecurityPlan from "./components/AddSecurityPlan";
+import ThreatModels from "./components/ThreatModels";
+import AddThreatModel from "./components/AddThreatModel";
 import Recommendations from "./components/Recommendations";
 
 const AppRoutes = [
@@ -9,12 +9,12 @@ const AppRoutes = [
         element: <Home />
     },
     {
-        path: '/secplans',
-        element: <SecurityPlans />
+        path: '/threatmodels',
+        element: <ThreatModels />
     },
     {
-        path: '/addplan',
-        element: <AddSecurityPlan />
+        path: '/addthreatmodel',
+        element: <AddThreatModel />
     },
     {
         path: '/recommendations',

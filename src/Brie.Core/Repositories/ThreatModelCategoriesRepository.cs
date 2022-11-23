@@ -4,11 +4,11 @@ using System.Text.Json;
 
 namespace Brie.Core.Repositories;
 
-public class CategoriesRepository : RepositoryBase<Category>, ICategoriesRepository
+public class ThreatModelCategoriesRepository : RepositoryBase<Category>, IThreatModelCategoriesRepository
 {
-    private const string RepositoryFilename = "categories.json";
+    private const string RepositoryFilename = "threatmodels-categories.json";
 
-    public CategoriesRepository() : base(RepositoryFilename) { }
+    public ThreatModelCategoriesRepository() : base(RepositoryFilename) { }
 
 
     public new async Task<Category?> GetAllAsync()

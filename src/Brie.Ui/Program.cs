@@ -12,10 +12,11 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<IGitHubRepository, GitHubRepository>();
 builder.Services.AddSingleton<ICategoriesRepository, CategoriesRepository>();
-builder.Services.AddSingleton<IPlansRepository, PlansRepository>();
+builder.Services.AddSingleton<IThreatModelCategoriesRepository, ThreatModelCategoriesRepository>();
+builder.Services.AddSingleton<IThreatModelsRepository, ThreatModelsRepository>();
 
 builder.Services.AddScoped<ICategoriesService, CategoriesService>();
-builder.Services.AddScoped<IPlansService, PlansService>();
+builder.Services.AddScoped<IThreatModelsService, ThreatModelsService>();
 
 var app = builder.Build();
 
@@ -28,7 +29,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.MediateGet<GetCategoriesRequest>("/api/categories");
-app.MediateGet<GetPlansRequest>("/api/plans");
+
+app.MediateGet<GetThreatModelsRequest>("/api/threatmodels");
+app.MediateGet<GetThreatModelCategoriesRequest>("/api/threatmodels/categories");
+app.MediatePost<CreateThreatModelRequest>("/api/dashboards");
 
 app.MapFallbackToFile("index.html");
 

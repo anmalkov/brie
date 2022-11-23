@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace Brie.Core.Repositories;
 
-public class PlansRepository : RepositoryBase<Plan>, IPlansRepository
+public class ThreatModelsRepository : RepositoryBase<ThreatModel>, IThreatModelsRepository
 {
     private const string RepositoriesDirectoryName = "data";
-    private const string RepositoryFilename = "plans.json";
+    private const string RepositoryFilename = "threatmodels.json";
 
-    public PlansRepository() : base(RepositoryFilename) { }
+    public ThreatModelsRepository() : base(RepositoryFilename) { }
 }
