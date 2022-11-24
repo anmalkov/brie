@@ -14,6 +14,7 @@ builder.Services.AddSingleton<IGitHubRepository, GitHubRepository>();
 builder.Services.AddSingleton<ICategoriesRepository, CategoriesRepository>();
 builder.Services.AddSingleton<IThreatModelCategoriesRepository, ThreatModelCategoriesRepository>();
 builder.Services.AddSingleton<IThreatModelsRepository, ThreatModelsRepository>();
+builder.Services.AddSingleton<IReportsRepository, ReportsRepository>();
 
 builder.Services.AddScoped<ICategoriesService, CategoriesService>();
 builder.Services.AddScoped<IThreatModelsService, ThreatModelsService>();
@@ -33,6 +34,7 @@ app.MediateGet<GetCategoriesRequest>("/api/categories");
 app.MediateGet<GetThreatModelsRequest>("/api/threatmodels");
 app.MediateGet<GetThreatModelCategoriesRequest>("/api/threatmodels/categories");
 app.MediatePost<CreateThreatModelRequest>("/api/threatmodels");
+app.MediateGet<GetThreatModelReportRequest>("/api/threatmodels/{id}/report");
 
 app.MapFallbackToFile("index.html");
 

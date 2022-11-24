@@ -11,7 +11,9 @@ public class RepositoryBase<T> where T : class, IStorableItem
 
     private readonly string _repositoryFullFilename;
 
-    private ConcurrentDictionary<string, T>? _items = null;
+    private ConcurrentDictionary<string, T> _items = new();
+
+    private bool isLoaded = false;
 
 
     public RepositoryBase(string repositoryFilename)
@@ -24,7 +26,7 @@ public class RepositoryBase<T> where T : class, IStorableItem
     public async Task<IEnumerable<T>?> GetAllAsync()
     {
         await LoadAsync();
-        return _items?.Values;
+        return _items.Values;
     }
 
     public async Task UpdateAllAsync(IEnumerable<T> items)
@@ -36,7 +38,7 @@ public class RepositoryBase<T> where T : class, IStorableItem
     public async Task CreateAsync(T item)
     {
         await LoadAsync();
-        _items!.TryAdd(item.Id, item);
+        _items.TryAdd(item.Id, item);
         await SaveAsync();
     }
 
@@ -44,7 +46,7 @@ public class RepositoryBase<T> where T : class, IStorableItem
     {
         await LoadAsync();
 
-        if (_items!.ContainsKey(item.Id))
+        if (_items.ContainsKey(item.Id))
         {
             _items.TryRemove(item.Id, out _);
             _items.TryAdd(item.Id, item);
@@ -56,7 +58,7 @@ public class RepositoryBase<T> where T : class, IStorableItem
     public async Task DeleteAync(string id)
     {
         await LoadAsync();
-        if (!_items!.ContainsKey(id))
+        if (!_items.ContainsKey(id))
         {
             return;
         }
@@ -68,14 +70,14 @@ public class RepositoryBase<T> where T : class, IStorableItem
 
     private async Task LoadAsync()
     {
-        if (!File.Exists(_repositoryFullFilename))
+        if (!File.Exists(_repositoryFullFilename) || isLoaded)
         {
-            _items = new();
             return;
         }
 
         var json = await File.ReadAllTextAsync(_repositoryFullFilename);
         _items = JsonSerializer.Deserialize<ConcurrentDictionary<string, T>>(json) ?? new();
+        isLoaded = true;
     }
 
     private async Task SaveAsync()

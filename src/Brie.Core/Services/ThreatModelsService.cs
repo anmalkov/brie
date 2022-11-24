@@ -14,19 +14,25 @@ namespace Brie.Core.Services;
 public class ThreatModelsService : IThreatModelsService
 {
     private const string CategoryCacheKey = "threatmodels.category";
+    private const string MarkdownTemplateCacheKey = "threatmodels.template";
+    private const string ProjectNamePlaceholder = "[tm-project-name]";
+    private const string DataflowAttributesPlaceholder = "[tm-data-flow-attributes]";
+    private const string ThreatPropertiesPlaceholder = "[tm-threat-properties]";
 
     private readonly IGitHubRepository _gitHubRepository;
     private readonly IThreatModelsRepository _threatModelsRepository;
     private readonly IThreatModelCategoriesRepository _threatModelCategoriesRepository;
     private readonly IMemoryCache _memoryCache;
+    private readonly IReportsRepository _reportsRepository;
 
-    
-    public ThreatModelsService(IGitHubRepository gitHubRepository, IThreatModelsRepository threatModelsRepository, IThreatModelCategoriesRepository threatModelCategoriesRepository, IMemoryCache memoryCache)
+    public ThreatModelsService(IGitHubRepository gitHubRepository, IThreatModelsRepository threatModelsRepository, 
+        IThreatModelCategoriesRepository threatModelCategoriesRepository, IMemoryCache memoryCache, IReportsRepository reportsRepository)
     {
         _gitHubRepository = gitHubRepository;
         _threatModelsRepository = threatModelsRepository;
         _threatModelCategoriesRepository = threatModelCategoriesRepository;
         _memoryCache = memoryCache;
+        _reportsRepository = reportsRepository;
     }
 
     
@@ -53,6 +59,66 @@ public class ThreatModelsService : IThreatModelsService
     public async Task CreateAsync(ThreatModel threadModel)
     {
         await _threatModelsRepository.CreateAsync(threadModel);
+        var mdReport = await GenerateReportAsync(threadModel);
+        if (mdReport is not null)
+        {
+            await _reportsRepository.CreateAsync(threadModel.Id, threadModel.ProjectName, mdReport);
+        }
+    }
+
+    public Task<string> GetReportAsync(string id)
+    {
+        return _reportsRepository.GetAsync(id);
+    }
+
+
+    private async Task<string?> GenerateReportAsync(ThreatModel threadModel)
+    {
+        var mdReport = await _memoryCache.GetOrCreateAsync(MarkdownTemplateCacheKey, async entry =>
+        {
+            entry.SetAbsoluteExpiration(TimeSpan.FromHours(24));
+            var file = await _gitHubRepository.GetFileAsync("anmalkov", "brief", "Threat Model/threat-model-template.md");
+            return file.Content;
+        });
+        if (mdReport is null)
+        {
+            return null;
+        }
+        
+        mdReport = mdReport.Replace(ProjectNamePlaceholder, threadModel.ProjectName);
+        var dataflowAttributeSection = GenerateDataflowAttributeSection(threadModel);
+        mdReport = mdReport.Replace(DataflowAttributesPlaceholder, dataflowAttributeSection);
+        var threatModelPropertiesSection = GenerateThreatModelPropertiesSection(threadModel);
+        mdReport = mdReport.Replace(ThreatPropertiesPlaceholder, threatModelPropertiesSection);
+        return mdReport;
+    }
+        
+    private static string GenerateThreatModelPropertiesSection(ThreatModel threadModel)
+    {
+        var section = new StringBuilder();
+        var index = 1;
+        foreach (var threat in threadModel.Threats)
+        {
+            if (index > 1)
+            {
+                section.AppendLine();
+            }
+            section.AppendLine("---");
+            section.AppendLine($"**Threat #:** {index}  ");
+            section.AppendLine(threat.Description.Trim());
+            index++;
+        }
+        return section.ToString();
+    }
+
+    private static string GenerateDataflowAttributeSection(ThreatModel threadModel)
+    {
+        var section = new StringBuilder();
+        foreach (var a in threadModel.DataflowAttributes)
+        {
+            section.AppendLine($"| {a.Number.Trim()} | {a.Transport.Trim()} | {a.DataClassification.Trim()} | {a.Authentication.Trim()} | {a.Notes.Trim()} |");
+        }
+        return section.ToString();
     }
 
     private async Task<Category> GetRecommendationsFromGitHubAsync()
@@ -86,4 +152,5 @@ public class ThreatModelsService : IThreatModelsService
             file.Content
         );
     }
+
 }

@@ -44,6 +44,13 @@ public class GitHubRepository : IGitHubRepository
         return GetDirectoryAsync(directoryName, url);
     }
 
+    public async Task<GitHubFile> GetFileAsync(string accountName, string repositoryName, string path)
+    {
+        var url = $"https://api.github.com/repos/{accountName}/{repositoryName}/contents/{Uri.EscapeDataString(path)}";
+        return await GetFileAsync(url);
+    }
+    
+
     private async Task<GitHubDirectory> GetDirectoryAsync(string name, string url)
     {
         var response = await _httpClient.GetAsync(url);
