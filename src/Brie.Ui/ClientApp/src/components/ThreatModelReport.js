@@ -3,7 +3,9 @@ import { Button, Spinner, Alert } from 'reactstrap';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { fetchThreatModelReport } from '../fetchers/threatmodels';
+import './ThreatModelReport.css';
 
 const ThreatModelReport = () => {
 
@@ -32,8 +34,10 @@ const ThreatModelReport = () => {
             </div>
             {isError ? (
                 <Alert color="danger">{error.message}</Alert >
-            ): (
-                <ReactMarkdown>{ report }</ReactMarkdown>
+            ) : (
+                <div id="markdown-report">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{report}</ReactMarkdown>
+                </div>
             )}
         </>
     );
