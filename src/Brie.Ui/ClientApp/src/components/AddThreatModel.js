@@ -92,9 +92,8 @@ const AddThreatModel = () => {
         if (dataflowAttributes.length > 0) {
             nextIndex = Math.max(...dataflowAttributes.map(a => a.number)) + 1;
         }
-        console.log(nextIndex);
         const newAttribute = {
-            number: nextIndex,
+            number: nextIndex.toString(),
             transport: 'HTTPS/TLS 1.2',
             dataClassification: 'Confidential',
             authentication: 'Azure AD',
@@ -111,9 +110,7 @@ const AddThreatModel = () => {
 
     const handleDataflowAttributeChange = (e, index) => {
         const { name, value } = e.target;
-        console.log(name, value);
         const updatedObject = Object.assign({}, dataflowAttributes[index], { [name]: value });
-        console.log(updatedObject);
         setDataflowAttributes([
             ...dataflowAttributes.slice(0, index),
             updatedObject,
@@ -128,18 +125,18 @@ const AddThreatModel = () => {
             threats: selectedRecommendations
         };
         console.log(threatModel);
-    //    try {
-    //        await createThreatModelMutation.mutateAsync(threatModel);
-    //        queryClient.invalidateQueries(['threatmodels']);
-    //        queryClient.refetchQueries('threatmodels', { force: true });
-    //    }
-    //    catch { }
+        try {
+            await createThreatModelMutation.mutateAsync(threatModel);
+            queryClient.invalidateQueries(['threatmodels']);
+            queryClient.refetchQueries('threatmodels', { force: true });
+        }
+        catch { }
     }
 
     return (
         <>
             <div className="mb-3">
-                <Button color="secondary" onClick={() => navigate('/secplans')}>Back to threat models</Button>
+                <Button color="secondary" onClick={() => navigate('/threatmodels')}>Back to threat models</Button>
             </div>
             <FormGroup>
                 <Label for="projectName">Project name</Label>

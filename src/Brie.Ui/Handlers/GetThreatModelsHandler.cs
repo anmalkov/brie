@@ -18,6 +18,8 @@ namespace Brie.Ui.Handlers
         string Id,
         string ProjectName,
         string? Description,
+        DateTime CreatedAt,
+        DateTime? UpdatedAt,
         IEnumerable<DataflowAttributeDto> DataflowAttributes,
         IEnumerable<RecommendationDto> Threats
     );
@@ -48,6 +50,8 @@ namespace Brie.Ui.Handlers
                 p.Id,
                 p.ProjectName,
                 p.Description,
+                p.CreatedAt,
+                p.UpdatedAt,
                 p.DataflowAttributes.Select(MapDataflowAttributeToDto).ToArray(),
                 p.Threats.Select(MapRecommendationToDto).ToArray()
             )).ToArray();

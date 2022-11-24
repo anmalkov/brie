@@ -50,9 +50,9 @@ public class ThreatModelsService : IThreatModelsService
         });
     }
 
-    public Task CreateAsync(ThreatModel threadModel)
+    public async Task CreateAsync(ThreatModel threadModel)
     {
-        throw new NotImplementedException();
+        await _threatModelsRepository.CreateAsync(threadModel);
     }
 
     private async Task<Category> GetRecommendationsFromGitHubAsync()

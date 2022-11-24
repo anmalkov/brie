@@ -33,6 +33,8 @@ namespace Brie.Ui.Handlers
                 Guid.NewGuid().ToString(),
                 dto.ProjectName,
                 dto.Description,
+                DateTime.Now,
+                null,
                 dto.DataflowAttributes.Select(MapDtoToDataflowAttribute).ToArray(),
                 dto.Threats.Select(MapDtoToRecommendation).ToArray()
             );

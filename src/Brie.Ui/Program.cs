@@ -32,7 +32,7 @@ app.MediateGet<GetCategoriesRequest>("/api/categories");
 
 app.MediateGet<GetThreatModelsRequest>("/api/threatmodels");
 app.MediateGet<GetThreatModelCategoriesRequest>("/api/threatmodels/categories");
-app.MediatePost<CreateThreatModelRequest>("/api/dashboards");
+app.MediatePost<CreateThreatModelRequest>("/api/threatmodels");
 
 app.MapFallbackToFile("index.html");
 

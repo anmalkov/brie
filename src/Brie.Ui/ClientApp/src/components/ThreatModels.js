@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Spinner, ListGroup, Alert, Button, Badge, NavLink } from 'reactstrap';
+import { Spinner, Alert, Button, Table } from 'reactstrap';
 import { useQuery } from 'react-query';
 import { fetchThreatModels } from '../fetchers/threatmodels';
 import { useNavigate } from 'react-router-dom';
@@ -10,7 +10,8 @@ import { useNavigate } from 'react-router-dom';
 const ThreatModels = () => {
 
     const navigate = useNavigate();
-    const { isError, isLoading, threatmodels, error } = useQuery(['threatmodels'], fetchThreatModels, { staleTime: 1 * 60 * 60 * 1000 });
+    const { isError, isLoading, data, error } = useQuery(['threatmodels'], fetchThreatModels, { staleTime: 1 * 60 * 60 * 1000 });
+    const threatmodels = data;
 
     if (isLoading) {
         return (
@@ -36,8 +37,26 @@ const ThreatModels = () => {
             {!threatmodels || threatmodels.length == 0 ? (
                 <p>There are no threat models</p>
             ) : (
-                <>
-                </>
+                <Table hover>
+                    <thead>
+                        <tr>
+                            <th scope="col" className="w-50">Project name</th>
+                            <th scope="col">Created</th>
+                            <th scope="col">Updated</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {threatmodels.sort((a, b) => a.projectName > b.projectName ? 1 : -1).map(t => (
+                            <tr key={t.id}>
+                                <td>{t.projectName}</td>
+                                <td>{(new Date(t.createdAt)).toLocaleDateString()}</td>
+                                <td>{t.updatedAt ? (new Date(t.updatedAt)).toLocaleDateString() : 'Never'}</td>
+                                <td><Button size="sm" outline color="primary">Show report</Button></td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </Table>
             )}
         </>
     );

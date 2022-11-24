@@ -1,4 +1,5 @@
 ﻿using Brie.Core.Models;
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
 
@@ -10,6 +11,8 @@ public class RepositoryBase<T> where T : class, IStorableItem
 
     private readonly string _repositoryFullFilename;
 
+    private ConcurrentDictionary<string, T>? _items = null;
+
 
     public RepositoryBase(string repositoryFilename)
     {
@@ -20,60 +23,62 @@ public class RepositoryBase<T> where T : class, IStorableItem
 
     public async Task<IEnumerable<T>?> GetAllAsync()
     {
-        return await LoadAsync();
+        await LoadAsync();
+        return _items?.Values;
     }
 
     public async Task UpdateAllAsync(IEnumerable<T> items)
     {
-        await SaveAsync(items ?? throw new ArgumentNullException(nameof(items)));
+        _items = new ConcurrentDictionary<string, T>(items.ToDictionary(i => i.Id, i => i));
+        await SaveAsync();
     }
 
-    public async Task AddAsync(T item)
+    public async Task CreateAsync(T item)
     {
-        var items = await LoadAsync();
-
-        //items!.TryAdd(item.Id, item);
-
-        //await SaveAsync();
+        await LoadAsync();
+        _items!.TryAdd(item.Id, item);
+        await SaveAsync();
     }
 
     public async Task UpdateAsync(T item)
     {
         await LoadAsync();
 
-        //if (_items!.ContainsKey(item.Id))
-        //{
-        //    _items.TryRemove(item.Id, out _);
-        //    _items.TryAdd(item.Id, item);
-        //}
+        if (_items!.ContainsKey(item.Id))
+        {
+            _items.TryRemove(item.Id, out _);
+            _items.TryAdd(item.Id, item);
+        }
 
-        //await SaveAsync();
+        await SaveAsync();
     }
 
     public async Task DeleteAync(string id)
     {
         await LoadAsync();
+        if (!_items!.ContainsKey(id))
+        {
+            return;
+        }
 
-        //if (_items!.ContainsKey(id))
-        //{
-        //    _items.TryRemove(id, out _);
-        //    await SaveAsync();
-        //}
+        _items.TryRemove(id, out _);
+        await SaveAsync();
     }
 
 
-    private async Task<IEnumerable<T>?> LoadAsync()
+    private async Task LoadAsync()
     {
         if (!File.Exists(_repositoryFullFilename))
         {
-            return null;
+            _items = new();
+            return;
         }
 
         var json = await File.ReadAllTextAsync(_repositoryFullFilename);
-        return JsonSerializer.Deserialize<IEnumerable<T>>(json);
+        _items = JsonSerializer.Deserialize<ConcurrentDictionary<string, T>>(json) ?? new();
     }
 
-    private async Task SaveAsync(IEnumerable<T> items)
+    private async Task SaveAsync()
     {
         var directoryName = Path.GetDirectoryName(_repositoryFullFilename);
         if (!string.IsNullOrEmpty(directoryName) && !Directory.Exists(directoryName))
@@ -81,7 +86,7 @@ public class RepositoryBase<T> where T : class, IStorableItem
             Directory.CreateDirectory(directoryName);
         }
 
-        var json = JsonSerializer.Serialize(items);
+        var json = JsonSerializer.Serialize(_items);
         await File.WriteAllTextAsync(_repositoryFullFilename, json.ToString());
     }
 }

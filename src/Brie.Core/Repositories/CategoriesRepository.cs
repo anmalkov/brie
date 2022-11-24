@@ -14,7 +14,7 @@ public class CategoriesRepository : RepositoryBase<Category>, ICategoriesReposit
     public new async Task<Category?> GetAllAsync()
     {
         var categories = await base.GetAllAsync();
-        return categories is not null ? categories.First() : null;
+        return categories is not null && categories.Count() > 0 ? categories.First() : null;
     }
 
     public async Task UpdateAllAsync(Category category)

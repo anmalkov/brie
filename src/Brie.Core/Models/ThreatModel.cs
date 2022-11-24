@@ -14,6 +14,8 @@ public record ThreatModel(
     string Id,
     string ProjectName,
     string? Description,
+    DateTime CreatedAt,
+    DateTime? UpdatedAt,
     IEnumerable<DataflowAttribute> DataflowAttributes,
     IEnumerable<Recommendation> Threats
 ) : IStorableItem;
