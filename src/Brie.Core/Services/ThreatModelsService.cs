@@ -56,21 +56,40 @@ public class ThreatModelsService : IThreatModelsService
         });
     }
 
-    public async Task CreateAsync(ThreatModel threadModel)
+    public async Task CreateAsync(ThreatModel threatModel)
     {
-        await _threatModelsRepository.CreateAsync(threadModel);
-        var mdReport = await GenerateReportAsync(threadModel);
+        await _threatModelsRepository.CreateAsync(threatModel);
+        await GenerateAndSaveReportAsync(threatModel);
+    }
+
+    public async Task<string?> GetReportAsync(string id)
+    {
+        var report = await _reportsRepository.GetAsync(id);
+        if (report is not null)
+        {
+            return report;
+        }
+
+        var threatModel = await _threatModelsRepository.GetAsync(id);
+        if (threatModel is null)
+        {
+            return null;
+        }
+
+        return await GenerateAndSaveReportAsync(threatModel);
+    }
+
+
+    private async Task<string?> GenerateAndSaveReportAsync(ThreatModel threatModel)
+    {
+        var mdReport = await GenerateReportAsync(threatModel);
         if (mdReport is not null)
         {
-            await _reportsRepository.CreateAsync(threadModel.Id, threadModel.ProjectName, mdReport);
+            await _reportsRepository.CreateAsync(threatModel.Id, threatModel.ProjectName, mdReport);
         }
+        
+        return mdReport;
     }
-
-    public Task<string> GetReportAsync(string id)
-    {
-        return _reportsRepository.GetAsync(id);
-    }
-
 
     private async Task<string?> GenerateReportAsync(ThreatModel threadModel)
     {

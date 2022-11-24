@@ -1,15 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Spinner, Alert, Button, Table } from 'reactstrap';
 import { useQuery } from 'react-query';
 import { fetchThreatModels } from '../fetchers/threatmodels';
 import { useNavigate } from 'react-router-dom';
-//import Category from './Category';
-//import { useEffect } from 'react';
-//import './Recommendations.css';
 
 const ThreatModels = () => {
 
     const navigate = useNavigate();
+
     const { isError, isLoading, data, error } = useQuery(['threatmodels'], fetchThreatModels, { staleTime: 1 * 60 * 60 * 1000 });
     const threatmodels = data;
 
@@ -52,7 +50,7 @@ const ThreatModels = () => {
                                 <td>{t.projectName}</td>
                                 <td>{(new Date(t.createdAt)).toLocaleDateString()}</td>
                                 <td>{t.updatedAt ? (new Date(t.updatedAt)).toLocaleDateString() : 'Never'}</td>
-                                <td><Button size="sm" outline color="primary">Show report</Button></td>
+                                <td><Button size="sm" outline color="primary" onClick={() => navigate('/threatmodelreport', { state: { id: t.id } })}>Show report</Button></td>
                             </tr>
                         ))}
                     </tbody>

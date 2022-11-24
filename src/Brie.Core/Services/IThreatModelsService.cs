@@ -7,5 +7,5 @@ public interface IThreatModelsService
     Task<IEnumerable<ThreatModel>?> GetAllAsync();
     Task<Category?> GetCategoryAsync();
     Task CreateAsync(ThreatModel threadModel);
-    Task<string> GetReportAsync(string id);
+    Task<string?> GetReportAsync(string id);
 }

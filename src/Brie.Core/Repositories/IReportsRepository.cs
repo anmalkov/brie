@@ -8,6 +8,6 @@ namespace Brie.Core.Repositories;
 
 public interface IReportsRepository
 {
-    Task<string> GetAsync(string id);
+    Task<string?> GetAsync(string id);
     Task CreateAsync(string id, string projectName, string content);
 }

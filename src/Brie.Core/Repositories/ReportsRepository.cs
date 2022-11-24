@@ -32,15 +32,10 @@ public class ReportsRepository : IReportsRepository
         await File.WriteAllTextAsync(GetReportFullFileName(id, projectName), content);
     }
 
-    public async Task<string> GetAsync(string id)
+    public async Task<string?> GetAsync(string id)
     {
         var files = Directory.GetFiles(_reportsFullPath, $"*{id}.md");
-        if (files.Any())
-        {
-            return await File.ReadAllTextAsync(files.First());
-        }
-        
-        return "";
+        return files.Any() ? await File.ReadAllTextAsync(files.First()) : null;
     }
 
     

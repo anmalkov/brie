@@ -18,7 +18,7 @@ namespace Brie.Ui.Handlers
         public async Task<IResult> Handle(GetThreatModelReportRequest request, CancellationToken cancellationToken)
         {
             var report = await _threatModelsService.GetReportAsync(request.Id);
-            return Results.File(report);
+            return report is not null ? Results.Ok(report) : Results.NotFound();
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { Spinner, ListGroup, Alert, Button, Badge, FormGroup, Label, Input, Row, Col} from 'reactstrap';
+import { Spinner, ListGroup, Alert, Button, Badge, FormGroup, Label, Input, Row, Col, UncontrolledAlert } from 'reactstrap';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { fetchThreatModelCategory, createThreatModel } from '../fetchers/threatmodels';
@@ -124,11 +124,11 @@ const AddThreatModel = () => {
             dataflowAttributes: dataflowAttributes,
             threats: selectedRecommendations
         };
-        console.log(threatModel);
         try {
             await createThreatModelMutation.mutateAsync(threatModel);
             queryClient.invalidateQueries(['threatmodels']);
             queryClient.refetchQueries('threatmodels', { force: true });
+            navigate('/threatmodels');
         }
         catch { }
     }
@@ -217,6 +217,14 @@ const AddThreatModel = () => {
             </FormGroup>
             <FormGroup className="border-top border-3 border-dark pt-3">
                 <Button color="success" onClick={saveThreatModelHandler}>Save threat model</Button>
+                {createThreatModelMutation.isLoading &&
+                    <Spinner size="sm">Loading...</Spinner>
+                }
+                {createThreatModelMutation.isError &&
+                    <UncontrolledAlert color="danger" className="m-3 mb-0">
+                        {createThreatModelMutation.error.message}
+                    </UncontrolledAlert>
+                }
             </FormGroup>
         </>
     );

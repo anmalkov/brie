@@ -29,6 +29,12 @@ public class RepositoryBase<T> where T : class, IStorableItem
         return _items.Values;
     }
 
+    public async Task<T?> GetAsync(string id)
+    {
+        await LoadAsync();
+        return _items is not null && _items.TryGetValue(id, out var value) ? value : null;
+    }
+
     public async Task UpdateAllAsync(IEnumerable<T> items)
     {
         _items = new ConcurrentDictionary<string, T>(items.ToDictionary(i => i.Id, i => i));

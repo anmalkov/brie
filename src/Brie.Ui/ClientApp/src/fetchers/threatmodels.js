@@ -10,6 +10,13 @@ export const fetchThreatModelCategory = async () => {
     return categories;
 }
 
+export const fetchThreatModelReport = async (id) => {
+    const response = await fetch('api/threatmodels/' + id + '/report');
+    const report = (await response.text()).slice(1, -1).replace(/\\r\\n/g, '\r');;
+    console.log(report);
+    return report;
+}
+
 export const createThreatModel = async (threatModel) => {
     const request = {
         method: 'POST',
