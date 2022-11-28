@@ -11,8 +11,8 @@ export const fetchThreatModelCategory = async () => {
 }
 
 export const fetchThreatModelReport = async (id) => {
-    const response = await fetch('api/threatmodels/' + id + '/report');
-    const report = (await response.text()).slice(1, -1).replace(/\\r\\n/g, '\r');;
+    const response = await fetch(`api/threatmodels/${id}/report`);
+    const report = await response.text();
     console.log(report);
     return report;
 }
@@ -24,6 +24,17 @@ export const createThreatModel = async (threatModel) => {
         body: JSON.stringify(threatModel)
     };
     const response = await fetch('api/threatmodels', request);
+    if (response.status !== 200) {
+        const result = await response.json();
+        throw Error(result.detail);
+    }
+}
+
+export const deleteThreatModel = async (id) => {
+    const request = {
+        method: 'DELETE'
+    };
+    const response = await fetch(`api/threatmodels/${id}`, request);
     if (response.status !== 200) {
         const result = await response.json();
         throw Error(result.detail);

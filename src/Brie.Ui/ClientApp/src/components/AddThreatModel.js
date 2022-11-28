@@ -17,6 +17,7 @@ const AddThreatModel = () => {
     const [selectedList, setSelectedList] = useState([]);
     const [projectName, setProjectName] = useState('');
     const [dataflowAttributes, setDataflowAttributes] = useState([]);
+    const [saveButtonDisabled, setSaveButtonDisabled] = useState(true);
 
     const queryClient = useQueryClient();
 
@@ -63,6 +64,14 @@ const AddThreatModel = () => {
         }
         setSelectedList(getChildrenIds(data));
     }, [data]);
+
+
+
+    useEffect(() => {
+        setSaveButtonDisabled(!projectName || projectName.length === 0 ||
+            dataflowAttributes.length === 0 || selectedRecommendationsCount === 0);
+    }, [projectName, dataflowAttributes, selectedList]);
+
 
     if (isLoading) {
         return (
@@ -216,7 +225,7 @@ const AddThreatModel = () => {
                 )}
             </FormGroup>
             <FormGroup className="border-top border-3 border-dark pt-3">
-                <Button color="success" onClick={saveThreatModelHandler}>Save threat model</Button>
+                <Button color="success" onClick={saveThreatModelHandler} disabled={saveButtonDisabled}>Save threat model</Button>
                 {createThreatModelMutation.isLoading &&
                     <Spinner size="sm">Loading...</Spinner>
                 }

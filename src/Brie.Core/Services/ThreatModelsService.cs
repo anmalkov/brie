@@ -62,21 +62,32 @@ public class ThreatModelsService : IThreatModelsService
         await GenerateAndSaveReportAsync(threatModel);
     }
 
-    public async Task<string?> GetReportAsync(string id)
+    public async Task<string?> GetReportAsync(string threatModelId)
     {
-        var report = await _reportsRepository.GetAsync(id);
+        var report = await _reportsRepository.GetAsync(threatModelId);
         if (report is not null)
         {
             return report;
         }
 
-        var threatModel = await _threatModelsRepository.GetAsync(id);
+        var threatModel = await _threatModelsRepository.GetAsync(threatModelId);
         if (threatModel is null)
         {
             return null;
         }
 
         return await GenerateAndSaveReportAsync(threatModel);
+    }
+
+    public async Task StoreFileForReportAsync(string threatModelId, string fileName, byte[] content)
+    {
+        await _reportsRepository.StoreAsync(threatModelId, fileName, content);
+    }
+
+    public async Task DeleteAsync(string id)
+    {
+        await _threatModelsRepository.DeleteAsync(id);
+        _reportsRepository.Delete(id);
     }
 
 
@@ -127,7 +138,7 @@ public class ThreatModelsService : IThreatModelsService
             section.AppendLine(threat.Description.Trim());
             index++;
         }
-        return section.ToString();
+        return section.ToString().TrimEnd(Environment.NewLine.ToCharArray());
     }
 
     private static string GenerateDataflowAttributeSection(ThreatModel threadModel)
@@ -137,7 +148,7 @@ public class ThreatModelsService : IThreatModelsService
         {
             section.AppendLine($"| {a.Number.Trim()} | {a.Transport.Trim()} | {a.DataClassification.Trim()} | {a.Authentication.Trim()} | {a.Notes.Trim()} |");
         }
-        return section.ToString();
+        return section.ToString().TrimEnd(Environment.NewLine.ToCharArray());
     }
 
     private async Task<Category> GetRecommendationsFromGitHubAsync()

@@ -35,6 +35,7 @@ app.MediateGet<GetThreatModelsRequest>("/api/threatmodels");
 app.MediateGet<GetThreatModelCategoriesRequest>("/api/threatmodels/categories");
 app.MediatePost<CreateThreatModelRequest>("/api/threatmodels");
 app.MediateGet<GetThreatModelReportRequest>("/api/threatmodels/{id}/report");
+app.MediateDelete<DeleteThreatModelRequest>("/api/threatmodels/{id}");
 
 app.MapFallbackToFile("index.html");
 

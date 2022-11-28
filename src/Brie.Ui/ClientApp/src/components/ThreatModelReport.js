@@ -27,10 +27,15 @@ const ThreatModelReport = () => {
         );
     }
 
+    const getReportUrl = (id) => {
+        return `api/threatmodels/${id}/report`;
+    }
+
     return (
         <>
             <div className="mb-3">
                 <Button color="secondary" onClick={() => navigate('/threatmodels')}>Back to threat models</Button>
+                <a href={getReportUrl(id)} download className="btn btn-success float-end">Download report</a>
             </div>
             {isError ? (
                 <Alert color="danger">{error.message}</Alert >

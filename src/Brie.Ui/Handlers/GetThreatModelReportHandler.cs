@@ -3,6 +3,7 @@ using Brie.Core.Services;
 using Brie.Ui.Requests;
 using MediatR;
 using System.Security.Cryptography.Xml;
+using System.Text;
 
 namespace Brie.Ui.Handlers
 {
@@ -17,8 +18,18 @@ namespace Brie.Ui.Handlers
 
         public async Task<IResult> Handle(GetThreatModelReportRequest request, CancellationToken cancellationToken)
         {
-            var report = await _threatModelsService.GetReportAsync(request.Id);
-            return report is not null ? Results.Ok(report) : Results.NotFound();
+            try
+            {
+                var report = await _threatModelsService.GetReportAsync(request.Id);
+                return report is not null
+                    ? Results.File(Encoding.UTF8.GetBytes(report), "text/markdown", "threat-model-report.md")
+                    : Results.NotFound();
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message);
+            }
+
         }
     }
 }

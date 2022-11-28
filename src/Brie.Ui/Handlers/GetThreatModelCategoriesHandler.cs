@@ -17,8 +17,15 @@ namespace Brie.Ui.Handlers
 
         public async Task<IResult> Handle(GetThreatModelCategoriesRequest request, CancellationToken cancellationToken)
         {
-            var category = await _threatModelsService.GetCategoryAsync();
-            return Results.Ok(MapCategoryToDto(category));
+            try
+            {
+                var category = await _threatModelsService.GetCategoryAsync();
+                return Results.Ok(MapCategoryToDto(category));
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message);
+            }
         }
 
         private static CategoryDto? MapCategoryToDto(Category? category)

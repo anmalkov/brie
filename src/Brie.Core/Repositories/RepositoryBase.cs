@@ -61,7 +61,7 @@ public class RepositoryBase<T> where T : class, IStorableItem
         await SaveAsync();
     }
 
-    public async Task DeleteAync(string id)
+    public async Task DeleteAsync(string id)
     {
         await LoadAsync();
         if (!_items.ContainsKey(id))

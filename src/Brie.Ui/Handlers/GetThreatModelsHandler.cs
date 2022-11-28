@@ -28,16 +28,26 @@ namespace Brie.Ui.Handlers
     {
         private readonly IThreatModelsService _threatModelsService;
 
+
         public GetThreatModelsHandler(IThreatModelsService threatModelsService)
         {
             _threatModelsService = threatModelsService;
         }
 
+
         public async Task<IResult> Handle(GetThreatModelsRequest request, CancellationToken cancellationToken)
         {
-            var threatModels = await _threatModelsService.GetAllAsync();
-            return Results.Ok(MapThreatModelsToDtos(threatModels));
+            try
+            {
+                var threatModels = await _threatModelsService.GetAllAsync();
+                return Results.Ok(MapThreatModelsToDtos(threatModels));
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(ex.Message);
+            }
         }
+        
 
         private static IEnumerable<ThreatModelDto>? MapThreatModelsToDtos(IEnumerable<ThreatModel>? threatModels)
         {

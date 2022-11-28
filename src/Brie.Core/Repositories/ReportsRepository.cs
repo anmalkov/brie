@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -13,6 +14,7 @@ public class ReportsRepository : IReportsRepository
 {
     private const string RepositoriesDirectoryName = "data";
     private const string ReportsDirectoryName = "reports";
+    private const string ReportFileName = "threat-model-report.md";
 
     private readonly string _reportsFullPath;
 
@@ -23,25 +25,71 @@ public class ReportsRepository : IReportsRepository
     }
     
     
-    public async Task CreateAsync(string id, string projectName, string content)
+    public async Task CreateAsync(string threatModelId, string projectName, string content)
+    {
+        var reportDirectory = GetReportDirectoryFullName(threatModelId, projectName);
+        if (!Directory.Exists(reportDirectory))
+        {
+            Directory.CreateDirectory(reportDirectory);
+        }
+        
+        var fileFullName = Path.Combine(reportDirectory, ReportFileName);
+        await File.WriteAllTextAsync(fileFullName, content);
+    }
+
+    public async Task<bool> StoreAsync(string threatModelId,  string fileName, byte[] content)
     {
         if (!Directory.Exists(_reportsFullPath))
         {
-            Directory.CreateDirectory(_reportsFullPath);
+            return false;
         }
-        await File.WriteAllTextAsync(GetReportFullFileName(id, projectName), content);
+        var directories = Directory.GetDirectories(_reportsFullPath, $"*{threatModelId}");
+        if (!directories.Any())
+        {
+            return false;
+        }
+
+        var fileFullName = Path.Combine(directories.First(), fileName);
+        await File.WriteAllBytesAsync(fileFullName, content);
+        return true;
     }
 
-    public async Task<string?> GetAsync(string id)
+    public async Task<string?> GetAsync(string threatModelId)
     {
-        var files = Directory.GetFiles(_reportsFullPath, $"*{id}.md");
-        return files.Any() ? await File.ReadAllTextAsync(files.First()) : null;
+        if (!Directory.Exists(_reportsFullPath))
+        {
+            return null;
+        }
+        var directories = Directory.GetDirectories(_reportsFullPath, $"*{threatModelId}");
+        if (!directories.Any())
+        {
+            return null;
+        }
+
+        var fileFullName = Path.Combine(directories.First(), ReportFileName);
+        return await File.ReadAllTextAsync(fileFullName);
     }
 
-    
-    private string GetReportFullFileName(string id, string projectName)
+    public void Delete(string threatModelId)
     {
-        projectName = projectName.Replace(" ", "-").ToLower();
-        return Path.Combine(_reportsFullPath, $"threat-model-{projectName}-{id}.md");
+        if (!Directory.Exists(_reportsFullPath))
+        {
+            return;
+        }
+        
+        var directories = Directory.GetDirectories(_reportsFullPath, $"*{threatModelId}");
+        if (!directories.Any())
+        {
+            return;
+        }
+
+        Directory.Delete(directories.First(), true);
+    }
+
+
+    private string GetReportDirectoryFullName(string id, string projectName)
+    {
+        var reportDirectoryName = $"{projectName.Replace(" ", "-").ToLower()}-{id}";
+        return Path.Combine(_reportsFullPath, reportDirectoryName);
     }
 }
