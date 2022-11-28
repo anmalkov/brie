@@ -56,7 +56,7 @@ const ThreatModels = () => {
             <div className="mb-3">
                 <Button color="success" onClick={() => navigate('/addthreatmodel')}>New threat model</Button>
             </div>
-            {!threatModels || threatModels.length == 0 ? (
+            {!threatModels || threatModels.length === 0 ? (
                 <p>There are no threat models</p>
             ) : (
                 <Table hover>

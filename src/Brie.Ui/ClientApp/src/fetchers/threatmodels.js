@@ -1,19 +1,28 @@
 ﻿export const fetchThreatModels = async () => {
     const response = await fetch('api/threatmodels');
-    const threatmodels = await response.json();
-    return threatmodels;
+    const result = await response.json();
+    if (response.status !== 200) {
+        throw Error(result.detail);
+    }
+    return result;
 }
 
 export const fetchThreatModelCategory = async () => {
     const response = await fetch('api/threatmodels/categories');
-    const categories = await response.json();
-    return categories;
+    const result = await response.json();
+    if (response.status !== 200) {
+        throw Error(result.detail);
+    }
+    return result;
 }
 
 export const fetchThreatModelReport = async (id) => {
     const response = await fetch(`api/threatmodels/${id}/report`);
+    if (response.status !== 200) {
+        const result = await response.json();
+        throw Error(result.detail);
+    }
     const report = await response.text();
-    console.log(report);
     return report;
 }
 

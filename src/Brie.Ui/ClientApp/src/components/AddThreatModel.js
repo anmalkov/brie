@@ -50,6 +50,8 @@ const AddThreatModel = () => {
     }
 
     const getSelectedRecommendations = (category) => {
+        console.log(category);
+        console.log(isError);
         if (!category) {
             return [];
         }
