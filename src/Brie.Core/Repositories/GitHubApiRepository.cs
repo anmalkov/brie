@@ -10,13 +10,13 @@ using System.Threading.Tasks;
 
 namespace Brie.Core.Repositories;
 
-public class GitHubRepository : IGitHubRepository
+public class GitHubApiRepository : IGitHubRepository
 {
     private readonly HttpClient _httpClient;
 
     private record GitHubDto(string Name, string Url, string Type, string? Content);
 
-    public GitHubRepository(HttpClient httpClient)
+    public GitHubApiRepository(HttpClient httpClient)
     {
         _httpClient = httpClient;
         _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");

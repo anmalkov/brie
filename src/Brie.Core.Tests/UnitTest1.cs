@@ -10,7 +10,7 @@ public class UnitTest1
         var directoryName = "Security Domain";
 
         var httpClient = new HttpClient();
-        var repository = new GitHubRepository(httpClient);
+        var repository = new GitHubApiRepository(httpClient);
 
         var directory = await repository.GetContentAsync("anmalkov", "brief", directoryName);
 

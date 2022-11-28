@@ -10,7 +10,8 @@ builder.Services.AddMediatR(m => m.AsScoped(), typeof(Program));
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient();
 
-builder.Services.AddSingleton<IGitHubRepository, GitHubRepository>();
+//builder.Services.AddSingleton<IGitHubRepository, GitHubRepository>();
+builder.Services.AddSingleton<IGitHubRepository, GitHubGitRepository>();
 builder.Services.AddSingleton<ICategoriesRepository, CategoriesRepository>();
 builder.Services.AddSingleton<IThreatModelCategoriesRepository, ThreatModelCategoriesRepository>();
 builder.Services.AddSingleton<IThreatModelsRepository, ThreatModelsRepository>();
