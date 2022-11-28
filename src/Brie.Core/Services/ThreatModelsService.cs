@@ -13,12 +13,16 @@ namespace Brie.Core.Services;
 
 public class ThreatModelsService : IThreatModelsService
 {
+    private const string GitHubAccountName = "anmalkov";
+    private const string GitHubRepositoryName = "brief";
+    private const string GitHubThreatModelFolderName = "Threat Model";
+    private const string GitHubThreatModelTemplateFilePath = GitHubThreatModelFolderName + "/threat-model-template.md";
+
     private const string CategoryCacheKey = "threatmodels.category";
     private const string MarkdownTemplateCacheKey = "threatmodels.template";
     private const string ProjectNamePlaceholder = "[tm-project-name]";
     private const string DataflowAttributesPlaceholder = "[tm-data-flow-attributes]";
     private const string ThreatPropertiesPlaceholder = "[tm-threat-properties]";
-
     private readonly IGitHubRepository _gitHubRepository;
     private readonly IThreatModelsRepository _threatModelsRepository;
     private readonly IThreatModelCategoriesRepository _threatModelCategoriesRepository;
@@ -107,8 +111,14 @@ public class ThreatModelsService : IThreatModelsService
         var mdReport = await _memoryCache.GetOrCreateAsync(MarkdownTemplateCacheKey, async entry =>
         {
             entry.SetAbsoluteExpiration(TimeSpan.FromHours(24));
-            var file = await _gitHubRepository.GetFileAsync("anmalkov", "brief", "Threat Model/threat-model-template.md");
-            return file.Content;
+            var template = await _reportsRepository.GetTemplateAsync();
+            if (template is null)
+            {
+                var file = await _gitHubRepository.GetFileAsync(GitHubAccountName, GitHubRepositoryName, GitHubThreatModelTemplateFilePath);
+                template = file.Content;
+                await _reportsRepository.StoreTemplateAsync(template);
+            }
+            return template;
         });
         if (mdReport is null)
         {
@@ -153,7 +163,7 @@ public class ThreatModelsService : IThreatModelsService
 
     private async Task<Category> GetRecommendationsFromGitHubAsync()
     {
-        var directory = await _gitHubRepository.GetContentAsync("anmalkov", "brief", "Threat Model");
+        var directory = await _gitHubRepository.GetContentAsync(GitHubAccountName, GitHubRepositoryName, GitHubThreatModelFolderName);
 
         return MapDirectoryToCategory(directory);
     }

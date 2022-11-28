@@ -13,6 +13,10 @@ namespace Brie.Core.Services;
 
 public class CategoriesService : ICategoriesService
 {
+    private const string GitHubAccountName = "anmalkov";
+    private const string GitHubRepositoryName = "brief";
+    private const string GitHubRecommendationsFolderName = "Security Domain";
+
     private const string CategoryCacheKey = "category";
 
     private readonly IGitHubRepository _gitHubRepository;
@@ -43,7 +47,7 @@ public class CategoriesService : ICategoriesService
     
     private async Task<Category> GetRecommendationsFromGitHubAsync()
     {
-        var directory = await _gitHubRepository.GetContentAsync("anmalkov", "brief", "Security Domain");
+        var directory = await _gitHubRepository.GetContentAsync(GitHubAccountName, GitHubRepositoryName, GitHubRecommendationsFolderName);
 
         return MapDirectoryToCategory(directory);
     }

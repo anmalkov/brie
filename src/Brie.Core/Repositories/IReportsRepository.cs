@@ -12,4 +12,6 @@ public interface IReportsRepository
     Task CreateAsync(string threatModelId, string projectName, string content);
     Task<bool> StoreAsync(string threatModelId, string fileName, byte[] content);
     void Delete(string threatModelId);
+    Task<string?> GetTemplateAsync();
+    Task StoreTemplateAsync(string content);
 }

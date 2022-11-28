@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Brie.Core.Models;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,7 @@ public class ReportsRepository : IReportsRepository
     private const string RepositoriesDirectoryName = "data";
     private const string ReportsDirectoryName = "reports";
     private const string ReportFileName = "threat-model-report.md";
+    private const string TemplateFileName = "template.md";
 
     private readonly string _reportsFullPath;
 
@@ -84,6 +86,28 @@ public class ReportsRepository : IReportsRepository
         }
 
         Directory.Delete(directories.First(), true);
+    }
+
+    public async Task<string?> GetTemplateAsync()
+    {
+        if (!Directory.Exists(_reportsFullPath))
+        {
+            return null;
+        }
+
+        var templateFileFullName = Path.Combine(_reportsFullPath, TemplateFileName);
+        return File.Exists(templateFileFullName) ? await File.ReadAllTextAsync(templateFileFullName) : null;
+    }
+
+    public async Task StoreTemplateAsync(string content)
+    {
+        if (!Directory.Exists(_reportsFullPath))
+        {
+            Directory.CreateDirectory(_reportsFullPath);
+        }
+
+        var templateFileFullName = Path.Combine(_reportsFullPath, TemplateFileName);
+        await File.WriteAllTextAsync(templateFileFullName, content);
     }
 
 
