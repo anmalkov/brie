@@ -61,6 +61,7 @@ public class GitHubGitRepository : IGitHubRepository
         return await GetFileAsync(filePath);
     }
 
+    
     private void CloneRepository(string accountName, string repositoryName)
     {
         if (!Directory.Exists(_repositoriesFullPath))
@@ -105,10 +106,12 @@ public class GitHubGitRepository : IGitHubRepository
 
     private static async Task<GitHubFile> GetFileAsync(string path)
     {
+        var isMarkdownFile = Path.GetExtension(path).ToLower() == ".md";
         return new GitHubFile(
             Path.GetFileName(path),
             path,
-            await File.ReadAllTextAsync(path)
+            isMarkdownFile ? await File.ReadAllTextAsync(path) : null,
+            isMarkdownFile ? null : await File.ReadAllBytesAsync(path)
         );
     }
 }

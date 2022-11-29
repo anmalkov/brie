@@ -1,6 +1,7 @@
 ﻿using Brie.Core.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
@@ -79,8 +80,13 @@ public class GitHubApiRepository : IGitHubRepository
         }
 
         var dto = await response.Content.ReadFromJsonAsync<GitHubDto>();
-        var content = Encoding.UTF8.GetString(Convert.FromBase64String(dto!.Content ?? ""));
-        return new GitHubFile(dto!.Name, url, content);
+        var isMarkdownFile = url.ToLower().EndsWith(".md");
+        var fileContent = Convert.FromBase64String(dto!.Content ?? "");
+        return new GitHubFile(
+            dto!.Name,
+            url,
+            isMarkdownFile ? Encoding.UTF8.GetString(fileContent) : null,
+            isMarkdownFile ? null : fileContent
+        );
     }
-
 }

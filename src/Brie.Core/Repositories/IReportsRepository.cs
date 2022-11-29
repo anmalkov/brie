@@ -8,10 +8,10 @@ namespace Brie.Core.Repositories;
 
 public interface IReportsRepository
 {
-    Task<string?> GetAsync(string threatModelId);
-    Task CreateAsync(string threatModelId, string projectName, string content);
+    Task<byte[]?> GetAsync(string threatModelId, ReportType reportType);
+    Task CreateAsync(string threatModelId, string projectName, ReportType reportType, byte[] content);
     Task<bool> StoreAsync(string threatModelId, string fileName, byte[] content);
     void Delete(string threatModelId);
-    Task<string?> GetTemplateAsync();
-    Task StoreTemplateAsync(string content);
+    Task<byte[]?> GetTemplateAsync(ReportType reportType);
+    Task StoreTemplateAsync(ReportType reportType, byte[] content);
 }

@@ -11,12 +11,20 @@ using System.Threading.Tasks;
 
 namespace Brie.Core.Repositories;
 
+public enum ReportType
+{
+    Markdown = 1,
+    Word
+};
+
 public class ReportsRepository : IReportsRepository
 {
     private const string RepositoriesDirectoryName = "data";
     private const string ReportsDirectoryName = "reports";
-    private const string ReportFileName = "threat-model-report.md";
-    private const string TemplateFileName = "template.md";
+    private const string MarkdownReportFileName = "threat-model-report.md";
+    private const string WordReportFileName = "threat-model-report.docx";
+    private const string MarkdownTemplateFileName = "template.md";
+    private const string WordTemplateFileName = "template.docx";
 
     private readonly string _reportsFullPath;
 
@@ -27,16 +35,17 @@ public class ReportsRepository : IReportsRepository
     }
     
     
-    public async Task CreateAsync(string threatModelId, string projectName, string content)
+    public async Task CreateAsync(string threatModelId, string projectName, ReportType reportType, byte[] content)
     {
         var reportDirectory = GetReportDirectoryFullName(threatModelId, projectName);
         if (!Directory.Exists(reportDirectory))
         {
             Directory.CreateDirectory(reportDirectory);
         }
-        
-        var fileFullName = Path.Combine(reportDirectory, ReportFileName);
-        await File.WriteAllTextAsync(fileFullName, content);
+
+        var fileName = GetReportFileName(reportType);
+        var fileFullName = Path.Combine(reportDirectory, fileName);
+        await File.WriteAllBytesAsync(fileFullName, content);
     }
 
     public async Task<bool> StoreAsync(string threatModelId,  string fileName, byte[] content)
@@ -56,7 +65,7 @@ public class ReportsRepository : IReportsRepository
         return true;
     }
 
-    public async Task<string?> GetAsync(string threatModelId)
+    public async Task<byte[]?> GetAsync(string threatModelId, ReportType reportType)
     {
         if (!Directory.Exists(_reportsFullPath))
         {
@@ -68,8 +77,9 @@ public class ReportsRepository : IReportsRepository
             return null;
         }
 
-        var fileFullName = Path.Combine(directories.First(), ReportFileName);
-        return await File.ReadAllTextAsync(fileFullName);
+        var fileName = GetReportFileName(reportType);
+        var fileFullName = Path.Combine(directories.First(), fileName);
+        return await File.ReadAllBytesAsync(fileFullName);
     }
 
     public void Delete(string threatModelId)
@@ -88,28 +98,47 @@ public class ReportsRepository : IReportsRepository
         Directory.Delete(directories.First(), true);
     }
 
-    public async Task<string?> GetTemplateAsync()
+    public async Task<byte[]?> GetTemplateAsync(ReportType reportType)
     {
         if (!Directory.Exists(_reportsFullPath))
         {
             return null;
         }
 
-        var templateFileFullName = Path.Combine(_reportsFullPath, TemplateFileName);
-        return File.Exists(templateFileFullName) ? await File.ReadAllTextAsync(templateFileFullName) : null;
+        var fileName = GetTemplateFileName(reportType);
+        var templateFileFullName = Path.Combine(_reportsFullPath, fileName);
+        return File.Exists(templateFileFullName) ? await File.ReadAllBytesAsync(templateFileFullName) : null;
     }
 
-    public async Task StoreTemplateAsync(string content)
+    public async Task StoreTemplateAsync(ReportType reportType, byte[] content)
     {
         if (!Directory.Exists(_reportsFullPath))
         {
             Directory.CreateDirectory(_reportsFullPath);
         }
 
-        var templateFileFullName = Path.Combine(_reportsFullPath, TemplateFileName);
-        await File.WriteAllTextAsync(templateFileFullName, content);
+        var fileName = GetTemplateFileName(reportType);
+        var templateFileFullName = Path.Combine(_reportsFullPath, fileName);
+        await File.WriteAllBytesAsync(templateFileFullName, content);
     }
 
+    private static string GetTemplateFileName(ReportType reportType)
+    {
+        return reportType switch
+        {
+            ReportType.Word => WordTemplateFileName,
+            _ => MarkdownTemplateFileName
+        };
+    }
+
+    private static string GetReportFileName(ReportType reportType)
+    {
+        return reportType switch
+        {
+            ReportType.Word => WordReportFileName,
+            _ => MarkdownReportFileName
+        };
+    }
 
     private string GetReportDirectoryFullName(string id, string projectName)
     {

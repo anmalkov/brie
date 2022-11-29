@@ -8,6 +8,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Brie.Core.Services;
 
@@ -16,10 +17,12 @@ public class ThreatModelsService : IThreatModelsService
     private const string GitHubAccountName = "anmalkov";
     private const string GitHubRepositoryName = "brief";
     private const string GitHubThreatModelFolderName = "Threat Model";
-    private const string GitHubThreatModelTemplateFilePath = GitHubThreatModelFolderName + "/threat-model-template.md";
+    private const string GitHubMarkdownThreatModelTemplateFilePath = GitHubThreatModelFolderName + "/threat-model-template.md";
+    private const string GitHubWordThreatModelTemplateFilePath = GitHubThreatModelFolderName + "/threat-model-template.docx";
 
     private const string CategoryCacheKey = "threatmodels.category";
     private const string MarkdownTemplateCacheKey = "threatmodels.template";
+    private const string WordTemplateCacheKey = "threatmodels.word-template";
     private const string ProjectNamePlaceholder = "[tm-project-name]";
     private const string DataflowAttributesPlaceholder = "[tm-data-flow-attributes]";
     private const string ThreatPropertiesPlaceholder = "[tm-threat-properties]";
@@ -63,15 +66,15 @@ public class ThreatModelsService : IThreatModelsService
     public async Task CreateAsync(ThreatModel threatModel)
     {
         await _threatModelsRepository.CreateAsync(threatModel);
-        await GenerateAndSaveReportAsync(threatModel);
+        await GenerateAndSaveReportsAsync(threatModel);
     }
 
     public async Task<string?> GetReportAsync(string threatModelId)
     {
-        var report = await _reportsRepository.GetAsync(threatModelId);
-        if (report is not null)
+        var reportContent = await _reportsRepository.GetAsync(threatModelId, ReportType.Markdown);
+        if (reportContent is not null)
         {
-            return report;
+            return Encoding.UTF8.GetString(reportContent);
         }
 
         var threatModel = await _threatModelsRepository.GetAsync(threatModelId);
@@ -80,7 +83,7 @@ public class ThreatModelsService : IThreatModelsService
             return null;
         }
 
-        return await GenerateAndSaveReportAsync(threatModel);
+        return await GenerateAndSaveReportsAsync(threatModel);
     }
 
     public async Task StoreFileForReportAsync(string threatModelId, string fileName, byte[] content)
@@ -95,32 +98,43 @@ public class ThreatModelsService : IThreatModelsService
     }
 
 
-    private async Task<string?> GenerateAndSaveReportAsync(ThreatModel threatModel)
+    private async Task<string?> GenerateAndSaveReportsAsync(ThreatModel threatModel)
     {
-        var mdReport = await GenerateReportAsync(threatModel);
+        var mdReport = await GenerateMarkdownReportAsync(threatModel);
         if (mdReport is not null)
         {
-            await _reportsRepository.CreateAsync(threatModel.Id, threatModel.ProjectName, mdReport);
+            await _reportsRepository.CreateAsync(threatModel.Id, threatModel.ProjectName, ReportType.Markdown, Encoding.UTF8.GetBytes(mdReport));
         }
-        
+
+        var wordReport = await GenerateWordReportAsync(threatModel);
+        if (wordReport is not null)
+        {
+            await _reportsRepository.CreateAsync(threatModel.Id, threatModel.ProjectName, ReportType.Word, wordReport);
+        }
+
         return mdReport;
     }
 
-    private async Task<string?> GenerateReportAsync(ThreatModel threadModel)
+    private async Task<string?> GenerateMarkdownReportAsync(ThreatModel threadModel)
     {
         var mdReport = await _memoryCache.GetOrCreateAsync(MarkdownTemplateCacheKey, async entry =>
         {
+            var template = "";
             entry.SetAbsoluteExpiration(TimeSpan.FromHours(24));
-            var template = await _reportsRepository.GetTemplateAsync();
-            if (template is null)
+            var templateContent = await _reportsRepository.GetTemplateAsync(ReportType.Markdown);
+            if (templateContent is not null)
             {
-                var file = await _gitHubRepository.GetFileAsync(GitHubAccountName, GitHubRepositoryName, GitHubThreatModelTemplateFilePath);
+                template = Encoding.UTF8.GetString(templateContent);
+            }
+            else
+            {
+                var file = await _gitHubRepository.GetFileAsync(GitHubAccountName, GitHubRepositoryName, GitHubMarkdownThreatModelTemplateFilePath);
                 template = file.Content;
-                await _reportsRepository.StoreTemplateAsync(template);
+                await _reportsRepository.StoreTemplateAsync(ReportType.Markdown, Encoding.UTF8.GetBytes(template));
             }
             return template;
         });
-        if (mdReport is null)
+        if (string.IsNullOrWhiteSpace(mdReport))
         {
             return null;
         }
@@ -132,7 +146,34 @@ public class ThreatModelsService : IThreatModelsService
         mdReport = mdReport.Replace(ThreatPropertiesPlaceholder, threatModelPropertiesSection);
         return mdReport;
     }
-        
+
+    private async Task<byte[]?> GenerateWordReportAsync(ThreatModel threadModel)
+    {
+        var wordTemplate = await _memoryCache.GetOrCreateAsync(WordTemplateCacheKey, async entry =>
+        {
+            entry.SetAbsoluteExpiration(TimeSpan.FromHours(24));
+            var templateContent = await _reportsRepository.GetTemplateAsync(ReportType.Word);
+            if (templateContent is null)
+            { 
+                var file = await _gitHubRepository.GetFileAsync(GitHubAccountName, GitHubRepositoryName, GitHubWordThreatModelTemplateFilePath);
+                templateContent = file.BinaryContent;
+                await _reportsRepository.StoreTemplateAsync(ReportType.Word, templateContent);
+            }
+            return templateContent;
+        });
+        if (wordTemplate is null)
+        {
+            return null;
+        }
+
+        //wordTemplate = wordTemplate.Replace(ProjectNamePlaceholder, threadModel.ProjectName);
+        //var dataflowAttributeSection = GenerateDataflowAttributeSection(threadModel);
+        //wordTemplate = wordTemplate.Replace(DataflowAttributesPlaceholder, dataflowAttributeSection);
+        //var threatModelPropertiesSection = GenerateThreatModelPropertiesSection(threadModel);
+        //wordTemplate = wordTemplate.Replace(ThreatPropertiesPlaceholder, threatModelPropertiesSection);
+        return wordTemplate;
+    }
+
     private static string GenerateThreatModelPropertiesSection(ThreatModel threadModel)
     {
         var section = new StringBuilder();
@@ -175,7 +216,7 @@ public class ThreatModelsService : IThreatModelsService
             directory.Name,
             "",
             directory.Directories?.Select(d => MapDirectoryToCategory(d)).ToList(),
-            directory.Files?.Where(f => f.Name != "threat-model-template.md").Select(f => MapFileToRecommendation(f)).ToList()
+            directory.Files?.Where(f => f.Name != "threat-model-template.md" && f.Name != "threat-model-template.docx").Select(f => MapFileToRecommendation(f)).ToList()
         );
     }
 

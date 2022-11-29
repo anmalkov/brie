@@ -3,5 +3,6 @@
 public record GitHubFile(
     string Name,
     string Url,
-    string Content
+    string? Content,
+    byte[]? BinaryContent
 );
