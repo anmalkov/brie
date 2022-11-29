@@ -69,7 +69,7 @@ public static class OpenXmlHelper
                         new RunProperties(new Bold()),
                         new Text("Threat #:")
                     ),
-                    new Run(new Text($" {threatIndex}"))
+                    new Run(new Text($" {threatIndex}") { Space = SpaceProcessingModeValues.Preserve })
                 )
             };
             paragraphs.AddRange(GetParagraphsFromMarkdown(threat.Description));
