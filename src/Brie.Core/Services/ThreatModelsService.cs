@@ -7,8 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Category = Brie.Core.Models.Category;
+using Brie.Core.Helpers;
 
 namespace Brie.Core.Services;
 
@@ -166,12 +171,14 @@ public class ThreatModelsService : IThreatModelsService
             return null;
         }
 
-        //wordTemplate = wordTemplate.Replace(ProjectNamePlaceholder, threadModel.ProjectName);
-        //var dataflowAttributeSection = GenerateDataflowAttributeSection(threadModel);
-        //wordTemplate = wordTemplate.Replace(DataflowAttributesPlaceholder, dataflowAttributeSection);
-        //var threatModelPropertiesSection = GenerateThreatModelPropertiesSection(threadModel);
-        //wordTemplate = wordTemplate.Replace(ThreatPropertiesPlaceholder, threatModelPropertiesSection);
-        return wordTemplate;
+        var stream = new MemoryStream();
+        stream.Write(wordTemplate, 0, wordTemplate.Length);
+
+        await OpenXmlHelper.ReplaceAsync(stream, ProjectNamePlaceholder, threadModel.ProjectName);
+        OpenXmlHelper.AddDataflowAttributes(stream, threadModel.DataflowAttributes);
+        OpenXmlHelper.AddThreats(stream, threadModel.Threats);
+
+        return stream.ToArray();
     }
 
     private static string GenerateThreatModelPropertiesSection(ThreatModel threadModel)
@@ -229,7 +236,7 @@ public class ThreatModelsService : IThreatModelsService
     {
         return new Recommendation(
             GenerateIdFor(file.Url),
-            Path.GetFileNameWithoutExtension(file.Name),
+            System.IO.Path.GetFileNameWithoutExtension(file.Name),
             file.Content
         );
     }
