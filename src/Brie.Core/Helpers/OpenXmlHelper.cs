@@ -2,8 +2,10 @@
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Office2010.PowerPoint;
 using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Vml;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System;
+using System.ComponentModel;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -11,6 +13,19 @@ namespace Brie.Core.Helpers;
 
 public static class OpenXmlHelper
 {
+    private enum ParagraphPartType
+    {
+        Text,
+        Link,
+        Style,
+    }
+
+    private record ParagraphPart(
+        ParagraphPartType Type,
+        string? Text,
+        string? Style
+    );
+
     public static async Task ReplaceAsync(Stream stream, string placeholder, string replacement)
     {
         using var document = WordprocessingDocument.Open(stream, isEditable: true);
@@ -75,18 +90,21 @@ public static class OpenXmlHelper
             paragraphs.AddRange(GetParagraphsFromMarkdown(threat.Description));
             foreach (var paragraph in paragraphs.ToArray().Reverse())
             {
+                var hyperlinks = paragraph.Descendants<Hyperlink>();
+                foreach (var hyperlink in hyperlinks)
+                {
+                    var uri = new Uri(hyperlink.DocLocation);
+                    var relationship = document.MainDocumentPart.AddHyperlinkRelationship(uri, true);
+                    hyperlink.Id = relationship.Id;
+                    hyperlink.DocLocation = "";
+                }
                 header.InsertAfterSelf(paragraph);
             }
             threatIndex--;
         }
     }
 
-    private record TextPart(
-        bool IsText,
-        string? Text,
-        string? Style
-    );
-
+    
     private static IEnumerable<Paragraph> GetParagraphsFromMarkdown(string markdown)
     {
         var paragraphs = new List<Paragraph>();
@@ -101,7 +119,7 @@ public static class OpenXmlHelper
                 text = line[level..];
             }
 
-            var parts = new List<TextPart>();
+            var parts = new List<ParagraphPart>();
             var styles = new Stack<string>();
             var currentTextPart = "";
             for (int i = 0; i < text.Length; i++)
@@ -109,24 +127,39 @@ public static class OpenXmlHelper
                 char? previousCharacter = i > 0 ? text[i - 1] : null;
                 var currentCharacter = text[i];
                 char? nextCharacter = i < text.Length - 1 ? text[i + 1] : null;
-
-                if ((currentCharacter == '`' || currentCharacter == '*' || currentCharacter == '_') && (previousCharacter is null || previousCharacter != '\\'))
+                
+                if (currentCharacter == '[' && (previousCharacter is null || previousCharacter != '\\'))
+                {
+                    var regex = new Regex(@"\[(?<text>[^\]]+)\]\((?<url>[^\)]+)\)");
+                    var match = regex.Match(text[i..]);
+                    if (match.Success && match.Index == 0)
+                    {
+                        if (!string.IsNullOrEmpty(currentTextPart))
+                        {
+                            parts.Add(new ParagraphPart(ParagraphPartType.Text, currentTextPart, null));
+                            currentTextPart = "";
+                        }
+                        parts.Add(new ParagraphPart(ParagraphPartType.Link, match.Groups["text"].Value, match.Groups["url"].Value));
+                        i += match.Length;
+                    }
+                } 
+                else if ((currentCharacter == '`' || currentCharacter == '*' || currentCharacter == '_') && (previousCharacter is null || previousCharacter != '\\'))
                 {
                     if (!string.IsNullOrEmpty(currentTextPart))
                     {
-                        parts.Add(new TextPart(true, currentTextPart, null));
+                        parts.Add(new ParagraphPart(ParagraphPartType.Text, currentTextPart, null));
                         currentTextPart = "";
                     }
                     if (currentCharacter == '`')
                     {
                         var closeIndex = text.IndexOf('`', i + 1);
-                        parts.Add(new TextPart(false, null, "<c>"));
+                        parts.Add(new ParagraphPart(ParagraphPartType.Style, null, "<c>"));
                         if (closeIndex < 0)
                         {
                             closeIndex = text.Length;
                         }
-                        parts.Add(new TextPart(true, text[(i + 1)..(closeIndex - 1)], null));
-                        parts.Add(new TextPart(false, null, "</c>"));
+                        parts.Add(new ParagraphPart(ParagraphPartType.Text, text[(i + 1)..(closeIndex - 1)], null));
+                        parts.Add(new ParagraphPart(ParagraphPartType.Style, null, "</c>"));
                         i = closeIndex + 1;
                     } 
                     else if (currentCharacter == '*' || currentCharacter == '_')
@@ -136,12 +169,12 @@ public static class OpenXmlHelper
                             if (styles.Contains("bold") && styles.Peek() == "bold")
                             {
                                 styles.Pop();
-                                parts.Add(new TextPart(false, null, "</b>"));
+                                parts.Add(new ParagraphPart(ParagraphPartType.Style, null, "</b>"));
                             }
                             else
                             {
                                 styles.Push("bold");
-                                parts.Add(new TextPart(false, null, "<b>"));
+                                parts.Add(new ParagraphPart(ParagraphPartType.Style, null, "<b>"));
                             }
                             i += 2;
                         }
@@ -150,12 +183,12 @@ public static class OpenXmlHelper
                             if (styles.Contains("italic") && styles.Peek() == "italic")
                             {
                                 styles.Pop();
-                                parts.Add(new TextPart(false, null, "</i>"));
+                                parts.Add(new ParagraphPart(ParagraphPartType.Style, null, "</i>"));
                             }
                             else
                             {
                                 styles.Push("italic");
-                                parts.Add(new TextPart(false, null, "<i>"));
+                                parts.Add(new ParagraphPart(ParagraphPartType.Style, null, "<i>"));
                             }
                             i += 1;
                         }
@@ -169,27 +202,28 @@ public static class OpenXmlHelper
 
             if (!string.IsNullOrEmpty(currentTextPart))
             {
-                parts.Add(new TextPart(true, currentTextPart, null));
+                parts.Add(new ParagraphPart(ParagraphPartType.Text, currentTextPart, null));
             }
 
 
             var currentStyle = new List<string>();
             foreach (var part in parts)
             {
-                if (!part.IsText)
+                if (part.Type == ParagraphPartType.Style)
                 {
                     if (part.Style!.StartsWith("</"))
                     {
                         currentStyle.Remove(part.Style[2].ToString());
-                    } else
+                    }
+                    else
                     {
                         currentStyle.Add(part.Style[1].ToString());
                     }
                 }
-                else
+                else if (part.Type == ParagraphPartType.Text || part.Type == ParagraphPartType.Link)
                 {
                     var run = new Run();
-                    if (currentStyle.Any())
+                    if (currentStyle.Any() || part.Type == ParagraphPartType.Link)
                     {
                         var runProperties = new RunProperties();
                         if (currentStyle.Contains("b"))
@@ -205,11 +239,21 @@ public static class OpenXmlHelper
                             runProperties.Append(new RunFonts { Ascii = "Consolas" });
                             runProperties.Append(new Color() { Val = "#915100" });
                         }
+                        if (part.Type == ParagraphPartType.Link)
+                        {
+                            runProperties.Append(new RunStyle { Val = "Hyperlink" });
+                        }
                         run.Append(runProperties);
                     }
-                    run.Append(new Text(part.Text) { Space = SpaceProcessingModeValues.Preserve } );
-                    paragraph.Append(run);
-                    run = new Run();
+                    run.Append(new Text(part.Text) { Space = SpaceProcessingModeValues.Preserve });
+                    if (part.Type == ParagraphPartType.Text)
+                    {
+                        paragraph.Append(run);
+                    }
+                    else
+                    {
+                        paragraph.Append(new Hyperlink(run) { DocLocation = part.Style });
+                    }
                 }
             }
 
