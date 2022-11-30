@@ -1,17 +1,8 @@
 ﻿using Brie.Core.Models;
 using Brie.Core.Repositories;
 using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
 using Category = Brie.Core.Models.Category;
 using Brie.Core.Helpers;
 
