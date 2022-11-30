@@ -120,7 +120,7 @@ public class ThreatModelsService : IThreatModelsService
         return mdReport;
     }
 
-    private async Task<string?> GenerateMarkdownReportAsync(ThreatModel threadModel)
+    private async Task<string?> GenerateMarkdownReportAsync(ThreatModel threatModel)
     {
         var mdReport = await _memoryCache.GetOrCreateAsync(MarkdownTemplateCacheKey, async entry =>
         {
@@ -144,15 +144,15 @@ public class ThreatModelsService : IThreatModelsService
             return null;
         }
         
-        mdReport = mdReport.Replace(ProjectNamePlaceholder, threadModel.ProjectName);
-        var dataflowAttributeSection = GenerateDataflowAttributeSection(threadModel);
+        mdReport = mdReport.Replace(ProjectNamePlaceholder, threatModel.ProjectName);
+        var dataflowAttributeSection = GenerateDataflowAttributeSection(threatModel);
         mdReport = mdReport.Replace(DataflowAttributesPlaceholder, dataflowAttributeSection);
-        var threatModelPropertiesSection = GenerateThreatModelPropertiesSection(threadModel);
+        var threatModelPropertiesSection = GenerateThreatModelPropertiesSection(threatModel);
         mdReport = mdReport.Replace(ThreatPropertiesPlaceholder, threatModelPropertiesSection);
         return mdReport;
     }
 
-    private async Task<byte[]?> GenerateWordReportAsync(ThreatModel threadModel)
+    private async Task<byte[]?> GenerateWordReportAsync(ThreatModel threatModel)
     {
         var wordTemplate = await _memoryCache.GetOrCreateAsync(WordTemplateCacheKey, async entry =>
         {
@@ -174,18 +174,18 @@ public class ThreatModelsService : IThreatModelsService
         var stream = new MemoryStream();
         stream.Write(wordTemplate, 0, wordTemplate.Length);
 
-        await OpenXmlHelper.ReplaceAsync(stream, ProjectNamePlaceholder, threadModel.ProjectName);
-        OpenXmlHelper.AddDataflowAttributes(stream, threadModel.DataflowAttributes);
-        OpenXmlHelper.AddThreats(stream, threadModel.Threats);
+        await OpenXmlHelper.ReplaceAsync(stream, ProjectNamePlaceholder, threatModel.ProjectName);
+        OpenXmlHelper.AddDataflowAttributes(stream, threatModel.DataflowAttributes);
+        OpenXmlHelper.AddThreats(stream, threatModel.Threats);
 
         return stream.ToArray();
     }
 
-    private static string GenerateThreatModelPropertiesSection(ThreatModel threadModel)
+    private static string GenerateThreatModelPropertiesSection(ThreatModel threatModel)
     {
         var section = new StringBuilder();
         var index = 1;
-        foreach (var threat in threadModel.Threats)
+        foreach (var threat in threatModel.Threats)
         {
             if (index > 1)
             {
@@ -199,10 +199,10 @@ public class ThreatModelsService : IThreatModelsService
         return section.ToString().TrimEnd(Environment.NewLine.ToCharArray());
     }
 
-    private static string GenerateDataflowAttributeSection(ThreatModel threadModel)
+    private static string GenerateDataflowAttributeSection(ThreatModel threatModel)
     {
         var section = new StringBuilder();
-        foreach (var a in threadModel.DataflowAttributes)
+        foreach (var a in threatModel.DataflowAttributes)
         {
             section.AppendLine($"| {a.Number.Trim()} | {a.Transport.Trim()} | {a.DataClassification.Trim()} | {a.Authentication.Trim()} | {a.Notes.Trim()} |");
         }
