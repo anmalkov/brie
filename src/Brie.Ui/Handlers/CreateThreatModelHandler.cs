@@ -18,8 +18,9 @@ namespace Brie.Ui.Handlers
         {
             try
             {
-                await _threatModelsService.CreateAsync(MapRequestToThreatModel(request.Body));
-                return Results.Ok();
+                var threatModel = MapRequestToThreatModel(request.Body);
+                await _threatModelsService.CreateAsync(threatModel);
+                return Results.Ok(new { threatModel.Id });
             }
             catch (Exception ex)
             {

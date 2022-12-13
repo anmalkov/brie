@@ -26,13 +26,30 @@ export const fetchThreatModelReport = async (id) => {
     return report;
 }
 
-export const createThreatModel = async (threatModel) => {
+export const createThreatModel = async (threatModel, files) => {
     const request = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(threatModel)
     };
     const response = await fetch('api/threatmodels', request);
+    if (response.status !== 200) {
+        const result = await response.json();
+        throw Error(result.detail);
+    }
+    const result = await response.json();
+    await uploadFiles(result.id, files);
+}
+
+export const uploadFiles = async (id, files) => {
+    const formData = new FormData();
+    files.forEach(f => formData.append('file', f.file));
+    const request = {
+        method: 'POST',
+        body: formData,
+        dataType: "jsonp"
+    };
+    const response = await fetch(`api/threatmodels/${id}/upload`, request);
     if (response.status !== 200) {
         const result = await response.json();
         throw Error(result.detail);
