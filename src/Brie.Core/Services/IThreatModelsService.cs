@@ -9,5 +9,6 @@ public interface IThreatModelsService
     Task CreateAsync(ThreatModel threatModel);
     Task DeleteAsync(string id);
     Task<string?> GetReportAsync(string threatModelId);
+    Task<(byte[]? archiveContent, string fileName)> GetReportArchiveAsync(string threatModelId);
     Task StoreFileForReportAsync(string threatModelId, string fileName, byte[] content);
 }

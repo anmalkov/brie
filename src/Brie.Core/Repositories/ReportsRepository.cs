@@ -1,7 +1,9 @@
 ﻿using Brie.Core.Models;
+using DocumentFormat.OpenXml.Vml.Office;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -50,36 +52,58 @@ public class ReportsRepository : IReportsRepository
 
     public async Task<bool> StoreAsync(string threatModelId,  string fileName, byte[] content)
     {
-        if (!Directory.Exists(_reportsFullPath))
-        {
-            return false;
-        }
-        var directories = Directory.GetDirectories(_reportsFullPath, $"*{threatModelId}");
-        if (!directories.Any())
+        var directory = GetReportDirectory(threatModelId);
+        if (string.IsNullOrWhiteSpace(directory))
         {
             return false;
         }
 
-        var fileFullName = Path.Combine(directories.First(), fileName);
+        var fileFullName = Path.Combine(directory, fileName);
         await File.WriteAllBytesAsync(fileFullName, content);
         return true;
     }
 
     public async Task<byte[]?> GetAsync(string threatModelId, ReportType reportType)
     {
-        if (!Directory.Exists(_reportsFullPath))
+        var fileFullName = GetReportFullFileName(threatModelId, reportType);
+        if (string.IsNullOrWhiteSpace(fileFullName))
         {
             return null;
         }
-        var directories = Directory.GetDirectories(_reportsFullPath, $"*{threatModelId}");
-        if (!directories.Any())
+        
+        return await File.ReadAllBytesAsync(fileFullName);
+    }
+
+    public async Task<(byte[]? archiveContent, string fileName)> GetArchiveAsync(string threatModelId)
+    {
+        var directory = GetReportDirectory(threatModelId);
+        if (string.IsNullOrWhiteSpace(directory))
         {
-            return null;
+            return (null, "");
         }
 
-        var fileName = GetReportFileName(reportType);
-        var fileFullName = Path.Combine(directories.First(), fileName);
-        return await File.ReadAllBytesAsync(fileFullName);
+        var directoryName = Path.GetFileName(directory);
+        var archiveFileName = directoryName[..(directoryName.Length - threatModelId.Length - 1)] + ".zip";
+        var archiveFileFullName = Path.Combine(_reportsFullPath, archiveFileName);
+        if (File.Exists(archiveFileFullName))
+        {
+            File.Delete(archiveFileFullName);
+        }
+
+        ZipFile.CreateFromDirectory(directory, archiveFileFullName);
+
+        return (await File.ReadAllBytesAsync(archiveFileFullName), archiveFileName);
+    }
+
+    public bool Exists(string threatModelId, ReportType reportType)
+    {
+        var fileFullName = GetReportFullFileName(threatModelId, reportType);
+        if (string.IsNullOrWhiteSpace(fileFullName))
+        {
+            return false;
+        }
+
+        return File.Exists(fileFullName);
     }
 
     public void Delete(string threatModelId)
@@ -122,6 +146,31 @@ public class ReportsRepository : IReportsRepository
         await File.WriteAllBytesAsync(templateFileFullName, content);
     }
 
+
+    public string? GetReportFullFileName(string threatModelId, ReportType reportType)
+    {
+        var directory = GetReportDirectory(threatModelId);
+        if (string.IsNullOrWhiteSpace(directory))
+        {
+            return null;
+        }
+
+        var fileName = GetReportFileName(reportType);
+        var fileFullName = Path.Combine(directory, fileName);
+        return fileFullName;
+    }
+
+    private string? GetReportDirectory(string threatModelId)
+    {
+        if (!Directory.Exists(_reportsFullPath))
+        {
+            return null;
+        }
+        
+        var directories = Directory.GetDirectories(_reportsFullPath, $"*{threatModelId}");
+        return directories.Any() ? directories.First() : null;
+    }
+
     private static string GetTemplateFileName(ReportType reportType)
     {
         return reportType switch
@@ -140,9 +189,9 @@ public class ReportsRepository : IReportsRepository
         };
     }
 
-    private string GetReportDirectoryFullName(string id, string projectName)
+    private string GetReportDirectoryFullName(string threatMpdelId, string projectName)
     {
-        var reportDirectoryName = $"{projectName.Replace(" ", "-").ToLower()}-{id}";
+        var reportDirectoryName = $"{projectName.Replace(" ", "-").ToLower()}-{threatMpdelId}";
         return Path.Combine(_reportsFullPath, reportDirectoryName);
     }
 }

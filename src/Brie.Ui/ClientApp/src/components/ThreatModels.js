@@ -35,7 +35,7 @@ const ThreatModels = () => {
     }
 
     const getReportUrl = (id) => {
-        return `api/threatmodels/${id}/report`;
+        return `api/threatmodels/${id}/report/archive`;
     }
 
     const deleteHandler = async (id) => {

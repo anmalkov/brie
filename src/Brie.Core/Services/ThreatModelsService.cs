@@ -67,19 +67,22 @@ public class ThreatModelsService : IThreatModelsService
 
     public async Task<string?> GetReportAsync(string threatModelId)
     {
-        var reportContent = await _reportsRepository.GetAsync(threatModelId, ReportType.Markdown);
-        if (reportContent is not null)
+        if (_reportsRepository.Exists(threatModelId, ReportType.Markdown))
         {
-            return Encoding.UTF8.GetString(reportContent);
+            var reportContent = await _reportsRepository.GetAsync(threatModelId, ReportType.Markdown);
+            return Encoding.UTF8.GetString(reportContent!);
         }
 
-        var threatModel = await _threatModelsRepository.GetAsync(threatModelId);
-        if (threatModel is null)
-        {
-            return null;
-        }
+        return await GenerateAndSaveReportsAsync(threatModelId);
+    }
 
-        return await GenerateAndSaveReportsAsync(threatModel);
+    public async Task<(byte[]? archiveContent, string fileName)> GetReportArchiveAsync(string threatModelId)
+    {
+        if (!_reportsRepository.Exists(threatModelId, ReportType.Markdown))
+        {
+            await GenerateAndSaveReportsAsync(threatModelId);
+        }
+        return await _reportsRepository.GetArchiveAsync(threatModelId);
     }
 
     public async Task StoreFileForReportAsync(string threatModelId, string fileName, byte[] content)
@@ -93,6 +96,17 @@ public class ThreatModelsService : IThreatModelsService
         _reportsRepository.Delete(id);
     }
 
+
+    private async Task<string?> GenerateAndSaveReportsAsync(string threatModelId)
+    {
+        var threatModel = await _threatModelsRepository.GetAsync(threatModelId);
+        if (threatModel is null)
+        {
+            return null;
+        }
+
+        return await GenerateAndSaveReportsAsync(threatModel);
+    }
 
     private async Task<string?> GenerateAndSaveReportsAsync(ThreatModel threatModel)
     {
