@@ -17,5 +17,6 @@ public record ThreatModel(
     DateTime CreatedAt,
     DateTime? UpdatedAt,
     IEnumerable<DataflowAttribute> DataflowAttributes,
-    IEnumerable<Recommendation> Threats
+    IEnumerable<Recommendation> Threats,
+    IDictionary<string, string>? Images
 ) : IStorableItem;

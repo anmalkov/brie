@@ -130,7 +130,8 @@ const AddThreatModel = () => {
         var threatModel = {
             projectName: projectName,
             dataflowAttributes: dataflowAttributes,
-            threats: selectedRecommendations
+            threats: selectedRecommendations,
+            images: images.length > 0 ? images.map(i => ({ key: i.type, value: i.file.name })) : null
         };
         try {
             await createThreatModelMutation.mutateAsync(threatModel);

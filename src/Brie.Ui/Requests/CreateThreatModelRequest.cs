@@ -3,7 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Brie.Ui.Requests;
 
+public record CreateThreatModelDto(
+    string ProjectName,
+    string? Description,
+    IEnumerable<DataflowAttributeDto> DataflowAttributes,
+    IEnumerable<RecommendationDto> Threats,
+    IEnumerable<KeyValuePair<string, string>>? Images
+);
+
 public record struct CreateThreatModelRequest(
     [FromBody]
-    ThreatModelDto Body
+    CreateThreatModelDto Body
 ) : IHttpRequest;

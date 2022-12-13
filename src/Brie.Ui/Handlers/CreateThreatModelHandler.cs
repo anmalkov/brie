@@ -28,7 +28,7 @@ namespace Brie.Ui.Handlers
             }
         }
 
-        private static ThreatModel MapRequestToThreatModel(ThreatModelDto dto)
+        private static ThreatModel MapRequestToThreatModel(CreateThreatModelDto dto)
         {
             return new ThreatModel(
                 Guid.NewGuid().ToString(),
@@ -37,7 +37,8 @@ namespace Brie.Ui.Handlers
                 DateTime.Now,
                 null,
                 dto.DataflowAttributes.Select(MapDtoToDataflowAttribute).ToArray(),
-                dto.Threats.Select(MapDtoToRecommendation).ToArray()
+                dto.Threats.Select(MapDtoToRecommendation).ToArray(),
+                dto.Images?.ToDictionary(i => i.Key, i => i.Value)
             );
         }
 
@@ -60,6 +61,5 @@ namespace Brie.Ui.Handlers
                 dto.Description
             );
         }
-
     }
 }

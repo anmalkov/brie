@@ -22,6 +22,7 @@ public class ThreatModelsService : IThreatModelsService
     private const string ProjectNamePlaceholder = "[tm-project-name]";
     private const string DataflowAttributesPlaceholder = "[tm-data-flow-attributes]";
     private const string ThreatPropertiesPlaceholder = "[tm-threat-properties]";
+    private const string ImagesPlaceholderPrefix = "tm-image-";
     private readonly IGitHubRepository _gitHubRepository;
     private readonly IThreatModelsRepository _threatModelsRepository;
     private readonly IThreatModelCategoriesRepository _threatModelCategoriesRepository;
@@ -154,6 +155,13 @@ public class ThreatModelsService : IThreatModelsService
         mdReport = mdReport.Replace(DataflowAttributesPlaceholder, dataflowAttributeSection);
         var threatModelPropertiesSection = GenerateThreatModelPropertiesSection(threatModel);
         mdReport = mdReport.Replace(ThreatPropertiesPlaceholder, threatModelPropertiesSection);
+        if (threatModel.Images is not null)
+        {
+            foreach (var image in threatModel.Images)
+            {
+                mdReport = mdReport.Replace($"[{ImagesPlaceholderPrefix}{image.Key}]", $"![{image.Key}](./{image.Value})");
+            }
+        }
         return mdReport;
     }
 
