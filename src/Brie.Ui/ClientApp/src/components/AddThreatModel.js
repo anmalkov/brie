@@ -19,7 +19,6 @@ const AddThreatModel = () => {
     const [dataflowAttributes, setDataflowAttributes] = useState([]);
     const [saveButtonDisabled, setSaveButtonDisabled] = useState(true);
     const [images, setImages] = useState([]);
-    const [imageUrls, setImageUrls] = useState([]);
 
     const queryClient = useQueryClient();
 
@@ -71,15 +70,6 @@ const AddThreatModel = () => {
         setSaveButtonDisabled(!projectName || projectName.length === 0 ||
             dataflowAttributes.length === 0 || selectedRecommendationsCount === 0);
     }, [projectName, dataflowAttributes, selectedList]);
-
-    useEffect(() => {
-        if (images.length == 0) {
-            return;
-        }
-        const newImageUrls = [];
-        images.forEach(i => newImageUrls.push({ type: i.type, url: URL.createObjectURL(i.file) }));
-        setImageUrls(newImageUrls);
-    }, [images]);
 
 
     if (isLoading) {
@@ -151,13 +141,13 @@ const AddThreatModel = () => {
         catch { }
     }
 
-
-
     function onDiagramChange(type, e) {
         const newImages = images.filter(i => i.type != type);
-        newImages.push({ type: type, file: e.target.files[0] });
+        const file = e.target.files[0];
+        newImages.push({ type: type, file: file, url: URL.createObjectURL(file) });
         setImages(newImages);
     }
+
 
     return (
         <>
@@ -172,14 +162,14 @@ const AddThreatModel = () => {
                 <h5>Architecture diagram</h5>
                 <input type="file" accept="image/*" onChange={(e) => onDiagramChange('arch', e)} />
                 <div>
-                    {imageUrls.filter(i => i.type === 'arch').map(i => <img key={i.type} className="diagram" src={i.url} />)}
+                    {images.filter(i => i.type === 'arch').map(i => <img key={i.type} className="diagram" src={i.url} />)}
                 </div>
             </FormGroup>
             <FormGroup>
                 <h5>Data flow diagram</h5>
                 <input type="file" accept="image/*" onChange={(e) => onDiagramChange('flow', e)} />
                 <div>
-                    {imageUrls.filter(i => i.type === 'flow').map(i => <img key={i.type} className="diagram" src={i.url} />)}
+                    {images.filter(i => i.type === 'flow').map(i => <img key={i.type} className="diagram" src={i.url} />)}
                 </div>
             </FormGroup>
             <FormGroup>
@@ -242,7 +232,7 @@ const AddThreatModel = () => {
                 <h5>Threat map</h5>
                 <input type="file" accept="image/*" onChange={(e) => onDiagramChange('map', e)} />
                 <div>
-                    {imageUrls.filter(i => i.type === 'map').map(i => <img key={i.type} className="diagram" src={i.url} />)}
+                    {images.filter(i => i.type === 'map').map(i => <img key={i.type} className="diagram" src={i.url} />)}
                 </div>
             </FormGroup>
             <FormGroup>
