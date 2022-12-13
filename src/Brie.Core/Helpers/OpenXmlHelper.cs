@@ -1,4 +1,5 @@
 ﻿using Brie.Core.Models;
+using Brie.Core.Repositories;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Office2010.PowerPoint;
 using DocumentFormat.OpenXml.Packaging;
@@ -8,6 +9,12 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
+using A = DocumentFormat.OpenXml.Drawing;
+using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
+using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
+using Text = DocumentFormat.OpenXml.Wordprocessing.Text;
 
 namespace Brie.Core.Helpers;
 
@@ -104,7 +111,111 @@ public static class OpenXmlHelper
         }
     }
 
+    public static void AddImage(Stream stream, string imageType, string fileName, byte[] fileContent)
+    {
+        var paragraphText = imageType.ToLower() switch
+        {
+            "arch" => "Architecture Diagram",
+            "flow" => "Data Flow Diagram",
+            "map" => "Threat Map",
+            _ => ""
+        };
+        if (string.IsNullOrEmpty(paragraphText))
+        {
+            return;
+        }
+
+        using var document = WordprocessingDocument.Open(stream, isEditable: true);
+        var body = document.MainDocumentPart.Document.Body;
+
+        var header = FindParagraph(body, paragraphText);
+        if (header is null)
+        {
+            return;
+        }
+
+        var imagePartType = System.IO.Path.GetExtension(fileName)[1..].ToLower() switch
+        {
+            "jpg" => ImagePartType.Jpeg,
+            "jpeg" => ImagePartType.Jpeg,
+            "gif" => ImagePartType.Gif,
+            _ => ImagePartType.Png
+        };
+        var imagePart = document.MainDocumentPart.AddImagePart(imagePartType);
+        using var imageStream = new MemoryStream(fileContent);
+        imagePart.FeedData(imageStream);
+        var imageElement = GetImageElement(document.MainDocumentPart.GetIdOfPart(imagePart));
+        header.InsertAfterSelf(new Paragraph(new Run(imageElement)));
+    }
+
     
+    private static Drawing GetImageElement(string relationshipId)
+    {
+        return new Drawing(
+            new DW.Inline(
+                new DW.Extent() { Cx = 990000L, Cy = 792000L },
+                new DW.EffectExtent()
+                {
+                    LeftEdge = 0L,
+                    TopEdge = 0L,
+                    RightEdge = 0L,
+                    BottomEdge = 0L
+                },
+                new DW.DocProperties()
+                {
+                    Id = (UInt32Value)1U,
+                    Name = "Picture 1"
+                },
+                new DW.NonVisualGraphicFrameDrawingProperties(
+                    new A.GraphicFrameLocks() { NoChangeAspect = true }),
+                new A.Graphic(
+                    new A.GraphicData(
+                        new PIC.Picture(
+                            new PIC.NonVisualPictureProperties(
+                                new PIC.NonVisualDrawingProperties()
+                                {
+                                    Id = (UInt32Value)0U,
+                                    Name = "New Bitmap Image.jpg"
+                                },
+                                new PIC.NonVisualPictureDrawingProperties()),
+                            new PIC.BlipFill(
+                                new A.Blip(
+                                    new A.BlipExtensionList(
+                                        new A.BlipExtension()
+                                        {
+                                            Uri =
+                                            "{28A0092B-C50C-407E-A947-70E740481C1C}"
+                                        })
+                                )
+                                {
+                                    Embed = relationshipId,
+                                    CompressionState =
+                                    A.BlipCompressionValues.Print
+                                },
+                                new A.Stretch(
+                                    new A.FillRectangle())),
+                            new PIC.ShapeProperties(
+                                new A.Transform2D(
+                                    new A.Offset() { X = 0L, Y = 0L },
+                                    new A.Extents() { Cx = 990000L, Cy = 792000L }),
+                                new A.PresetGeometry(
+                                    new A.AdjustValueList()
+                                )
+                                { Preset = A.ShapeTypeValues.Rectangle }))
+                    )
+                    { Uri = "http://schemas.openxmlformats.org/drawingml/2006/picture" })
+            )
+            {
+                DistanceFromTop = (UInt32Value)0U,
+                DistanceFromBottom = (UInt32Value)0U,
+                DistanceFromLeft = (UInt32Value)0U,
+                DistanceFromRight = (UInt32Value)0U,
+                EditId = "50D07946"
+            }
+        );
+    }
+
+
     private static IEnumerable<Paragraph> GetParagraphsFromMarkdown(string markdown)
     {
         var paragraphs = new List<Paragraph>();

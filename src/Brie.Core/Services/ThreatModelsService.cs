@@ -63,7 +63,7 @@ public class ThreatModelsService : IThreatModelsService
     public async Task CreateAsync(ThreatModel threatModel)
     {
         await _threatModelsRepository.CreateAsync(threatModel);
-        await GenerateAndSaveReportsAsync(threatModel);
+        _reportsRepository.CreateReportDirectory(threatModel.Id, threatModel.ProjectName);
     }
 
     public async Task<string?> GetReportAsync(string threatModelId)
@@ -88,7 +88,7 @@ public class ThreatModelsService : IThreatModelsService
 
     public async Task StoreFileForReportAsync(string threatModelId, string fileName, byte[] content)
     {
-        await _reportsRepository.StoreAsync(threatModelId, fileName, content);
+        await _reportsRepository.StoreFileAsync(threatModelId, fileName, content);
     }
 
     public async Task DeleteAsync(string id)
@@ -190,7 +190,19 @@ public class ThreatModelsService : IThreatModelsService
         await OpenXmlHelper.ReplaceAsync(stream, ProjectNamePlaceholder, threatModel.ProjectName);
         OpenXmlHelper.AddDataflowAttributes(stream, threatModel.DataflowAttributes);
         OpenXmlHelper.AddThreats(stream, threatModel.Threats);
-
+        if (threatModel.Images is not null)
+        {
+            foreach (var image in threatModel.Images)
+            {
+                var imageContent = await _reportsRepository.GetFileAsync(threatModel.Id, image.Value);
+                if (imageContent is null)
+                {
+                    continue;
+                }
+                OpenXmlHelper.AddImage(stream, image.Key, image.Value, imageContent);
+            }
+        }
+        
         return stream.ToArray();
     }
 

@@ -10,8 +10,10 @@ public interface IReportsRepository
 {
     Task<byte[]?> GetAsync(string threatModelId, ReportType reportType);
     Task<(byte[]? archiveContent, string fileName)> GetArchiveAsync(string threatModelId);
+    void CreateReportDirectory(string threatModelId, string projectName);
     Task CreateAsync(string threatModelId, string projectName, ReportType reportType, byte[] content);
-    Task<bool> StoreAsync(string threatModelId, string fileName, byte[] content);
+    Task<bool> StoreFileAsync(string threatModelId, string fileName, byte[] content);
+    Task<byte[]?> GetFileAsync(string threatModelId, string fileName);
     bool Exists(string threatModelId, ReportType reportType);
     void Delete(string threatModelId);
     Task<byte[]?> GetTemplateAsync(ReportType reportType);

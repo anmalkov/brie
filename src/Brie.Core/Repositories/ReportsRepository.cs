@@ -35,8 +35,17 @@ public class ReportsRepository : IReportsRepository
     {
         _reportsFullPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".", RepositoriesDirectoryName, ReportsDirectoryName);
     }
-    
-    
+
+
+    public void CreateReportDirectory(string threatModelId, string projectName)
+    {
+        var reportDirectory = GetReportDirectoryFullName(threatModelId, projectName);
+        if (!Directory.Exists(reportDirectory))
+        {
+            Directory.CreateDirectory(reportDirectory);
+        }
+    }
+
     public async Task CreateAsync(string threatModelId, string projectName, ReportType reportType, byte[] content)
     {
         var reportDirectory = GetReportDirectoryFullName(threatModelId, projectName);
@@ -50,7 +59,7 @@ public class ReportsRepository : IReportsRepository
         await File.WriteAllBytesAsync(fileFullName, content);
     }
 
-    public async Task<bool> StoreAsync(string threatModelId,  string fileName, byte[] content)
+    public async Task<bool> StoreFileAsync(string threatModelId, string fileName, byte[] content)
     {
         var directory = GetReportDirectory(threatModelId);
         if (string.IsNullOrWhiteSpace(directory))
@@ -63,6 +72,18 @@ public class ReportsRepository : IReportsRepository
         return true;
     }
 
+    public async Task<byte[]?> GetFileAsync(string threatModelId, string fileName)
+    {
+        var directory = GetReportDirectory(threatModelId);
+        if (string.IsNullOrWhiteSpace(directory))
+        {
+            return null;
+        }
+        
+        var fileFullName = Path.Combine(directory, fileName);
+        return await File.ReadAllBytesAsync(fileFullName);
+    }
+    
     public async Task<byte[]?> GetAsync(string threatModelId, ReportType reportType)
     {
         var fileFullName = GetReportFullFileName(threatModelId, reportType);
@@ -146,7 +167,6 @@ public class ReportsRepository : IReportsRepository
         await File.WriteAllBytesAsync(templateFileFullName, content);
     }
 
-
     public string? GetReportFullFileName(string threatModelId, ReportType reportType)
     {
         var directory = GetReportDirectory(threatModelId);
@@ -159,6 +179,7 @@ public class ReportsRepository : IReportsRepository
         var fileFullName = Path.Combine(directory, fileName);
         return fileFullName;
     }
+    
 
     private string? GetReportDirectory(string threatModelId)
     {
