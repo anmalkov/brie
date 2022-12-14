@@ -3,6 +3,7 @@ import { Spinner, ListGroup, Alert, Button, Badge, FormGroup, Label, Input, Row,
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { fetchThreatModelCategory, createThreatModel } from '../fetchers/threatmodels';
+import { FiPlus, FiArrowLeft, FiCheck } from "react-icons/fi";
 import Category from './Category';
 import { useEffect } from 'react';
 import './AddThreatModel.css';
@@ -158,7 +159,7 @@ const AddThreatModel = () => {
     return (
         <>
             <div className="mb-3">
-                <Button color="secondary" onClick={() => navigate('/threatmodels')}>Back to threat models</Button>
+                <Button color="secondary" onClick={() => navigate('/threatmodels')}><FiArrowLeft /> Back to threat models</Button>
             </div>
             <FormGroup>
                 <Label for="projectName">Project name</Label>
@@ -187,7 +188,7 @@ const AddThreatModel = () => {
             <FormGroup>
                 <h5>Data flow attributes</h5>
                 <div>
-                    <Button color="success" onClick={addDataflowAttributeHandler}>Add attribute</Button>
+                    <Button color="success" onClick={addDataflowAttributeHandler}><FiPlus /> Add attribute</Button>
                     <Row className="mt-3">
                         <Col md={1}>
                             <Label>#</Label>
@@ -268,7 +269,7 @@ const AddThreatModel = () => {
                 )}
             </FormGroup>
             <FormGroup className="border-top border-3 border-dark pt-3">
-                <Button color="success" onClick={saveThreatModelHandler} disabled={saveButtonDisabled}>Save threat model</Button>
+                <Button color="success" onClick={saveThreatModelHandler} disabled={saveButtonDisabled}><FiCheck /> Save threat model</Button>
                 {createThreatModelMutation.isLoading &&
                     <Spinner size="sm">Loading...</Spinner>
                 }

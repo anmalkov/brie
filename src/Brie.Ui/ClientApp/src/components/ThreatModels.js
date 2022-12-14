@@ -3,6 +3,7 @@ import { Spinner, Alert, Button, Table } from 'reactstrap';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { fetchThreatModels, deleteThreatModel } from '../fetchers/threatmodels';
 import { useNavigate } from 'react-router-dom';
+import { FiEdit2, FiDownload, FiX, FiSearch, FiPlus } from "react-icons/fi";
 
 const ThreatModels = () => {
 
@@ -54,7 +55,7 @@ const ThreatModels = () => {
     return (
         <>
             <div className="mb-3">
-                <Button color="success" onClick={() => navigate('/addthreatmodel')}>New threat model</Button>
+                <Button color="success" onClick={() => navigate('/addthreatmodel')}><FiPlus /> New threat model</Button>
             </div>
             {!threatModels || threatModels.length === 0 ? (
                 <p>There are no threat models</p>
@@ -76,9 +77,9 @@ const ThreatModels = () => {
                                 <td>{t.updatedAt ? (new Date(t.updatedAt)).toLocaleDateString() : 'Never'}</td>
                                 <td>
                                     <div className="hstack gap-3 float-end">
-                                        <Button size="sm" outline color="success" onClick={() => navigate('/threatmodelreport', { state: { id: t.id } })}>Show report</Button>
-                                        <a href={getReportUrl(t.id)} download className="btn btn-outline-success btn-sm">Download</a>
-                                        <Button size="sm" outline color="danger" onClick={() => deleteHandler(t.id)}>Delete</Button>
+                                        <Button size="sm" outline color="success" onClick={() => navigate('/threatmodelreport', { state: { id: t.id } })}><FiSearch /></Button>
+                                        <a href={getReportUrl(t.id)} download className="btn btn-outline-success btn-sm"><FiDownload /></a>
+                                        <Button size="sm" outline color="danger" onClick={() => deleteHandler(t.id)}><FiX /></Button>
                                     </div>
                                 </td>
                             </tr>

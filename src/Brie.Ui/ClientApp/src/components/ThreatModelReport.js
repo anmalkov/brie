@@ -5,6 +5,7 @@ import { useQuery } from 'react-query';
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { fetchThreatModelReport } from '../fetchers/threatmodels';
+import { FiArrowLeft, FiDownload } from "react-icons/fi";
 import './ThreatModelReport.css';
 
 const ThreatModelReport = () => {
@@ -34,8 +35,8 @@ const ThreatModelReport = () => {
     return (
         <>
             <div className="mb-3">
-                <Button color="secondary" onClick={() => navigate('/threatmodels')}>Back to threat models</Button>
-                <a href={getReportUrl(id)} download className="btn btn-success float-end">Download report</a>
+                <Button color="secondary" onClick={() => navigate('/threatmodels')}><FiArrowLeft /> Back to threat models</Button>
+                <a href={getReportUrl(id)} download className="btn btn-success float-end"><FiDownload /> Download report</a>
             </div>
             {isError ? (
                 <Alert color="danger">{error.message}</Alert >
