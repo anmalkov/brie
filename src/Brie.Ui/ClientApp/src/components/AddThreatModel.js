@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { Spinner, ListGroup, Alert, Button, Badge, FormGroup, Label, Input, Row, Col, UncontrolledAlert } from 'reactstrap';
+import { Spinner, ListGroup, Alert, Button, Badge, FormGroup, Label, Input, Row, Col, UncontrolledAlert, CloseButton } from 'reactstrap';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { fetchThreatModelCategory, createThreatModel } from '../fetchers/threatmodels';
@@ -144,8 +144,13 @@ const AddThreatModel = () => {
 
     function onDiagramChange(type, e) {
         const newImages = images.filter(i => i.type != type);
-        const file = e.target.files[0];
-        newImages.push({ type: type, file: file, url: URL.createObjectURL(file) });
+        if (e && e.target && e.target.files[0]) {
+            const file = e.target.files[0];
+            newImages.push({ type: type, file: file, url: URL.createObjectURL(file) });
+        } else {
+            const element = document.getElementById(`image-${type}`);
+            element.value = null;
+        }
         setImages(newImages);
     }
 
@@ -161,17 +166,23 @@ const AddThreatModel = () => {
             </FormGroup>
             <FormGroup>
                 <h5>Architecture diagram</h5>
-                <input type="file" accept="image/*" onChange={(e) => onDiagramChange('arch', e)} />
-                <div>
-                    {images.filter(i => i.type === 'arch').map(i => <img key={i.type} className="diagram" src={i.url} />)}
-                </div>
+                <input id="image-arch" className="form-control mb-3" type="file" accept="image/*" onChange={(e) => onDiagramChange('arch', e)} />
+                {images.filter(i => i.type === 'arch').map(i => (
+                    <div key={i.type} className="position-relative">
+                        <img className="diagram mb-3" src={i.url} />
+                        <CloseButton className="position-absolute top-0 end-0 border border-dark bg-white" onClick={() => onDiagramChange('arch')} />
+                    </div>
+                ))}
             </FormGroup>
             <FormGroup>
                 <h5>Data flow diagram</h5>
-                <input type="file" accept="image/*" onChange={(e) => onDiagramChange('flow', e)} />
-                <div>
-                    {images.filter(i => i.type === 'flow').map(i => <img key={i.type} className="diagram" src={i.url} />)}
-                </div>
+                <input id="image-flow" className="form-control mb-3" type="file" accept="image/*" onChange={(e) => onDiagramChange('flow', e)} />
+                {images.filter(i => i.type === 'flow').map(i => (
+                    <div key={i.type} className="position-relative">
+                        <img className="diagram mb-3" src={i.url} />
+                        <CloseButton className="position-absolute top-0 end-0 border border-dark bg-white" onClick={() => onDiagramChange('flow')} />
+                    </div>
+                ))}
             </FormGroup>
             <FormGroup>
                 <h5>Data flow attributes</h5>
@@ -231,10 +242,13 @@ const AddThreatModel = () => {
             </FormGroup>
             <FormGroup>
                 <h5>Threat map</h5>
-                <input type="file" accept="image/*" onChange={(e) => onDiagramChange('map', e)} />
-                <div>
-                    {images.filter(i => i.type === 'map').map(i => <img key={i.type} className="diagram" src={i.url} />)}
-                </div>
+                <input id="image-map" className="form-control mb-3" type="file" accept="image/*" onChange={(e) => onDiagramChange('map', e)} />
+                {images.filter(i => i.type === 'map').map(i => (
+                    <div key={i.type} className="position-relative">
+                        <img className="diagram mb-3" src={i.url} />
+                        <CloseButton className="position-absolute top-0 end-0 border border-dark bg-white" onClick={() => onDiagramChange('map')} />
+                    </div>
+                ))}
             </FormGroup>
             <FormGroup>
                 <h5>Threat properties</h5>

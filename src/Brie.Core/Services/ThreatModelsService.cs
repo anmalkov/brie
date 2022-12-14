@@ -5,6 +5,8 @@ using System.Security.Cryptography;
 using System.Text;
 using Category = Brie.Core.Models.Category;
 using Brie.Core.Helpers;
+using DocumentFormat.OpenXml.Packaging;
+using System.Text.RegularExpressions;
 
 namespace Brie.Core.Services;
 
@@ -157,12 +159,63 @@ public class ThreatModelsService : IThreatModelsService
         mdReport = mdReport.Replace(ThreatPropertiesPlaceholder, threatModelPropertiesSection);
         if (threatModel.Images is not null)
         {
+            mdReport = RemoveHeadersForUnusedImages(mdReport, threatModel.Images);
             foreach (var image in threatModel.Images)
             {
                 mdReport = mdReport.Replace($"[{ImagesPlaceholderPrefix}{image.Key}]", $"![{image.Key}](./{image.Value})");
             }
         }
         return mdReport;
+    }
+
+    private static string RemoveHeadersForUnusedImages(string report, IDictionary<string, string> images)
+    {
+        if (!images.Any() || images.Count == 3)
+        {
+            return report;
+        }
+        
+        var imageTypes = new string[] { "arch", "map" };
+        foreach (var imageType in imageTypes)
+        {
+            if (images.ContainsKey(imageType))
+            {
+                continue;
+            }
+
+            var headerText = imageType.ToLower() switch
+            {
+                "arch" => "Architecture Diagram",
+                "flow" => "Data Flow Diagram",
+                "map" => "Threat Map",
+                _ => ""
+            };
+            if (string.IsNullOrEmpty(headerText))
+            {
+                continue;
+            }
+
+            var regex = new Regex($"(\n|\r|\r\n)[#]+[ ]+{headerText}");
+            var match = regex.Match(report);
+            if (!match.Success)
+            {
+                continue;
+            }
+            var startIndex = match.Index;
+
+            var placeholder = $"\\[{ImagesPlaceholderPrefix}{imageType}\\]";
+            regex = new Regex($"{placeholder}(\n|\r|\r\n)");
+            match = regex.Match(report);
+            if (!match.Success)
+            {
+                continue;
+            }
+            var endIndex = match.Index + match.Length;
+            
+            report = report.Remove(startIndex, endIndex - startIndex + 1);
+        }
+
+        return report;
     }
 
     private async Task<byte[]?> GenerateWordReportAsync(ThreatModel threatModel)
@@ -192,6 +245,7 @@ public class ThreatModelsService : IThreatModelsService
         OpenXmlHelper.AddThreats(stream, threatModel.Threats);
         if (threatModel.Images is not null)
         {
+            OpenXmlHelper.RemoveParagraphForUnusedImages(stream, threatModel.Images);
             foreach (var image in threatModel.Images)
             {
                 var imageContent = await _reportsRepository.GetFileAsync(threatModel.Id, image.Value);

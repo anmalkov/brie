@@ -1,16 +1,8 @@
 ﻿using Brie.Core.Models;
-using Brie.Core.Repositories;
 using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Office2010.PowerPoint;
 using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Vml;
 using DocumentFormat.OpenXml.Wordprocessing;
-using System;
-using System.ComponentModel;
-using System.IO;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
 using A = DocumentFormat.OpenXml.Drawing;
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
@@ -113,13 +105,7 @@ public static class OpenXmlHelper
 
     public static void AddImage(Stream stream, string imageType, string fileName, byte[] fileContent)
     {
-        var paragraphText = imageType.ToLower() switch
-        {
-            "arch" => "Architecture Diagram",
-            "flow" => "Data Flow Diagram",
-            "map" => "Threat Map",
-            _ => ""
-        };
+        var paragraphText = GetParagraphTextFor(imageType);
         if (string.IsNullOrEmpty(paragraphText))
         {
             return;
@@ -148,6 +134,57 @@ public static class OpenXmlHelper
         imagePart.FeedData(imageStream);
         var imageElement = GetImageElement(document.MainDocumentPart.GetIdOfPart(imagePart), imageWidth, imageHeight);
         header.InsertAfterSelf(new Paragraph(new Run(imageElement)));
+    }
+
+    public static void RemoveParagraphForUnusedImages(Stream stream, IDictionary<string, string> images)
+    {
+        if (!images.Any() || images.Count == 3)
+        {
+            return;
+        }
+
+        using var document = WordprocessingDocument.Open(stream, isEditable: true);
+        var body = document.MainDocumentPart.Document.Body;
+        
+        var imageTypes = new string[] { "arch", "map"};
+        foreach (var imageType in imageTypes)
+        {
+            if (images.ContainsKey(imageType))
+            {
+                continue;
+            }
+            
+            var paragraphText = GetParagraphTextFor(imageType);
+            if (string.IsNullOrEmpty(paragraphText))
+            {
+                continue;
+            }
+
+            RemoveParagraph(body, paragraphText);
+        }
+    }
+
+    public static void RemoveParagraph(Body body, string paragraphText)
+    {
+        var paragraph = FindParagraph(body, paragraphText);
+        if (paragraph is null)
+        {
+            return;
+        }
+
+        paragraph.RemoveAllChildren();
+        paragraph.Remove();
+    }
+
+    private static string GetParagraphTextFor(string imageType)
+    {
+        return imageType.ToLower() switch
+        {
+            "arch" => "Architecture Diagram",
+            "flow" => "Data Flow Diagram",
+            "map" => "Threat Map",
+            _ => ""
+        };
     }
 
     private static (long imageWidth, long imageHeight) GetImageSize(byte[] fileContent)
@@ -239,7 +276,6 @@ public static class OpenXmlHelper
             }
         );
     }
-
 
     private static IEnumerable<Paragraph> GetParagraphsFromMarkdown(string markdown)
     {
