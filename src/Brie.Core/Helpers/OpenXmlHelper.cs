@@ -125,6 +125,8 @@ public static class OpenXmlHelper
             return;
         }
 
+        (var imageWidth, var imageHeight) = GetImageSize(fileContent);
+
         using var document = WordprocessingDocument.Open(stream, isEditable: true);
         var body = document.MainDocumentPart.Document.Body;
 
@@ -144,16 +146,40 @@ public static class OpenXmlHelper
         var imagePart = document.MainDocumentPart.AddImagePart(imagePartType);
         using var imageStream = new MemoryStream(fileContent);
         imagePart.FeedData(imageStream);
-        var imageElement = GetImageElement(document.MainDocumentPart.GetIdOfPart(imagePart));
+        var imageElement = GetImageElement(document.MainDocumentPart.GetIdOfPart(imagePart), imageWidth, imageHeight);
         header.InsertAfterSelf(new Paragraph(new Run(imageElement)));
     }
 
-    
-    private static Drawing GetImageElement(string relationshipId)
+    private static (long imageWidth, long imageHeight) GetImageSize(byte[] fileContent)
+    {
+        long width = 0;
+        long height = 0;
+        using (var image = SixLabors.ImageSharp.Image.Load(fileContent))
+        {
+            width = image.Width;
+            height = image.Height;
+        }
+
+        width = (long)Math.Round((decimal)width * 9525);
+        height = (long)Math.Round((decimal)height * 9525);
+
+        double maxWidthCm = 17.4; // Our current margins gives us 17.4cm of space
+        long maxWidthEmus = (long)(maxWidthCm * 360000);
+        if (width > maxWidthEmus)
+        {
+            var ratio = (height * 1.0m) / width;
+            width = maxWidthEmus;
+            height = (long)(width * ratio);
+        }
+        
+        return (width, height);
+    }
+
+    private static Drawing GetImageElement(string relationshipId, long imageWidth, long imageHeight)
     {
         return new Drawing(
             new DW.Inline(
-                new DW.Extent() { Cx = 990000L, Cy = 792000L },
+                new DW.Extent() { Cx = imageWidth, Cy = imageHeight },
                 new DW.EffectExtent()
                 {
                     LeftEdge = 0L,
@@ -183,8 +209,7 @@ public static class OpenXmlHelper
                                     new A.BlipExtensionList(
                                         new A.BlipExtension()
                                         {
-                                            Uri =
-                                            "{28A0092B-C50C-407E-A947-70E740481C1C}"
+                                            Uri = "{28A0092B-C50C-407E-A947-70E740481C1C}"
                                         })
                                 )
                                 {
@@ -197,7 +222,7 @@ public static class OpenXmlHelper
                             new PIC.ShapeProperties(
                                 new A.Transform2D(
                                     new A.Offset() { X = 0L, Y = 0L },
-                                    new A.Extents() { Cx = 990000L, Cy = 792000L }),
+                                    new A.Extents() { Cx = imageWidth, Cy = imageHeight }),
                                 new A.PresetGeometry(
                                     new A.AdjustValueList()
                                 )
