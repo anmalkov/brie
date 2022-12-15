@@ -1,8 +1,8 @@
 ﻿import React, { useState } from 'react';
 import { Spinner, ListGroup, Alert, Button, Badge, FormGroup, Label, Input, Row, Col, UncontrolledAlert, CloseButton } from 'reactstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { fetchThreatModelCategory, createThreatModel } from '../fetchers/threatmodels';
+import { fetchThreatModelCategory, createThreatModel, fetchThreatModelFiles, updateThreatModel } from '../fetchers/threatmodels';
 import { FiPlus, FiArrowLeft, FiCheck } from "react-icons/fi";
 import Category from './Category';
 import { useEffect } from 'react';
@@ -12,19 +12,38 @@ const AddThreatModel = () => {
 
     const navigate = useNavigate();
 
+    const { state } = useLocation();
+    const oldThreatModel = state ? state.threatModel : null;
+
+    const queryName = oldThreatModel ? `threatmodel-images-${oldThreatModel.id}` : 'threatmodel-images';
+    const imagesQuery = useQuery([queryName], async () => await fetchThreatModelFiles(oldThreatModel ? oldThreatModel.id : null, oldThreatModel ? oldThreatModel.images : null));
+
     const { isError, isLoading, data, error } = useQuery(['threatmodel-category'], fetchThreatModelCategory, { staleTime: 24 * 60 * 60 * 1000 });
     const category = data;
 
     const [selectedList, setSelectedList] = useState([]);
-    const [projectName, setProjectName] = useState('');
-    const [dataflowAttributes, setDataflowAttributes] = useState([]);
+    const [projectName, setProjectName] = useState(oldThreatModel ? oldThreatModel.projectName : '');
+    const [dataflowAttributes, setDataflowAttributes] = useState(oldThreatModel ? oldThreatModel.dataflowAttributes : []);
     const [saveButtonDisabled, setSaveButtonDisabled] = useState(true);
     const [images, setImages] = useState([]);
+    const [imagesDownloaded, setImagesDownloaded] = useState(false);
+
+    useEffect(() => {
+        if (imagesDownloaded || !oldThreatModel || !oldThreatModel.images || imagesQuery.isLoading || !imagesQuery.data || imagesQuery.data.length === 0)  {
+            return;
+        }
+        setImages(imagesQuery.data.map(f => ({ type: f.type, fileName: f.name, file: null, url: URL.createObjectURL(f.content) })));
+        setImagesDownloaded(true);
+    }, [imagesQuery.data]);
 
     const queryClient = useQueryClient();
 
     const createThreatModelMutation = useMutation(threatModel => {
         return createThreatModel(threatModel, images);
+    });
+
+    const updateThreatModelMutation = useMutation(threatModel => {
+        return updateThreatModel(oldThreatModel.id, threatModel, images);
     });
 
     const getChildrenIds = category => {
@@ -58,35 +77,6 @@ const AddThreatModel = () => {
         let recommendations = [...category.recommendations.filter(r => isSelected(r.id))];
         category.children.forEach(c => recommendations = [...recommendations, ...getSelectedRecommendations(c)]);
         return recommendations;
-    }
-
-    useEffect(() => {
-        if (!data) {
-            return;
-        }
-        setSelectedList(getChildrenIds(data));
-    }, [data]);
-
-    useEffect(() => {
-        setSaveButtonDisabled(!projectName || projectName.length === 0 ||
-            dataflowAttributes.length === 0 || selectedRecommendationsCount === 0);
-    }, [projectName, dataflowAttributes, selectedList]);
-
-
-    if (isLoading) {
-        return (
-            <div className="text-center">
-                <Spinner>
-                    Loading...
-                </Spinner>
-            </div>
-        );
-    }
-
-    if (isError) {
-        return (
-            <Alert color="danger">{error.message}</Alert >
-        );
     }
 
     const selectedRecommendations = getSelectedRecommendations(category);
@@ -128,14 +118,20 @@ const AddThreatModel = () => {
     }
 
     const saveThreatModelHandler = async () => {
-        var threatModel = {
+        const threatModel = {
             projectName: projectName,
             dataflowAttributes: dataflowAttributes,
             threats: selectedRecommendations,
-            images: images.length > 0 ? images.map(i => ({ key: i.type, value: i.file.name })) : null
+            images: images.length > 0 ? images.map(i => ({ key: i.type, value: i.fileName })) : null
         };
         try {
-            await createThreatModelMutation.mutateAsync(threatModel);
+            if (!oldThreatModel) {
+                await createThreatModelMutation.mutateAsync(threatModel);
+            } else {
+                await updateThreatModelMutation.mutateAsync(threatModel);
+                queryClient.invalidateQueries([`threatmodelreport.${oldThreatModel.id}`]);
+                queryClient.refetchQueries(`threatmodelreport.${oldThreatModel.id}`, { force: true });
+            }
             queryClient.invalidateQueries(['threatmodels']);
             queryClient.refetchQueries('threatmodels', { force: true });
             navigate('/threatmodels');
@@ -147,7 +143,7 @@ const AddThreatModel = () => {
         const newImages = images.filter(i => i.type != type);
         if (e && e.target && e.target.files[0]) {
             const file = e.target.files[0];
-            newImages.push({ type: type, file: file, url: URL.createObjectURL(file) });
+            newImages.push({ type: type, fileName: file.name, file: file, url: URL.createObjectURL(file) });
         } else {
             const element = document.getElementById(`image-${type}`);
             element.value = null;
@@ -155,7 +151,41 @@ const AddThreatModel = () => {
         setImages(newImages);
     }
 
+    useEffect(() => {
+        console.log(images);
+    }, [images]);
 
+    useEffect(() => {
+        if (!data) {
+            return;
+        }
+        if (selectedList.length === 0 && oldThreatModel) {
+            setSelectedList(oldThreatModel.threats.map(t => t.id));
+        } else {
+            setSelectedList(getChildrenIds(data));
+        }
+    }, [data]);
+
+    useEffect(() => {
+        setSaveButtonDisabled(!projectName || projectName.length === 0 ||
+            dataflowAttributes.length === 0 || selectedRecommendationsCount === 0);
+    }, [projectName, dataflowAttributes, selectedList]);
+
+
+    if (isLoading) {
+        return (
+            <div className="text-center">
+                <Spinner>Loading...</Spinner>
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <Alert color="danger">{error.message}</Alert >
+        );
+    }
+    
     return (
         <>
             <div className="mb-3">

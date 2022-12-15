@@ -15,7 +15,7 @@ const ThreatModelReport = () => {
     const { state } = useLocation();
     const { id } = state;
 
-    const { isError, isLoading, data, error } = useQuery(['threatmodelreport.' + id], () => fetchThreatModelReport(id), { staleTime: 1 * 60 * 60 * 1000 });
+    const { isError, isLoading, data, error } = useQuery([`threatmodelreport.${id}`], () => fetchThreatModelReport(id), { staleTime: 1 * 60 * 60 * 1000 });
     const report = data;
 
     if (isLoading) {

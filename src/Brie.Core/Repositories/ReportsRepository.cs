@@ -46,6 +46,33 @@ public class ReportsRepository : IReportsRepository
         }
     }
 
+    public void RenameAndCleanReportDirectory(string threatModelId, string projectName, IEnumerable<string>? keepImagesFileNames)
+    {
+        var reportDirectory = GetReportDirectoryFullName(threatModelId, projectName);
+        if (!Directory.Exists(reportDirectory))
+        {
+            var oldDirectory = Directory.GetDirectories(_reportsFullPath, $"*{threatModelId}").FirstOrDefault();
+            if (oldDirectory is null)
+            {
+                Directory.CreateDirectory(reportDirectory);
+                return;
+            }
+            if (oldDirectory != reportDirectory)
+            {
+                Directory. Move(oldDirectory, reportDirectory);
+            }
+        }
+
+        var fileNames = Directory.GetFiles(reportDirectory);
+        foreach (var fileName in fileNames)
+        {
+            if (keepImagesFileNames is null || !keepImagesFileNames.Contains(Path.GetFileName(fileName)))
+            {
+                File.Delete(fileName);
+            }
+        }
+    }
+
     public async Task CreateAsync(string threatModelId, string projectName, ReportType reportType, byte[] content)
     {
         var reportDirectory = GetReportDirectoryFullName(threatModelId, projectName);
@@ -134,13 +161,13 @@ public class ReportsRepository : IReportsRepository
             return;
         }
         
-        var directories = Directory.GetDirectories(_reportsFullPath, $"*{threatModelId}");
-        if (!directories.Any())
+        var directory = Directory.GetDirectories(_reportsFullPath, $"*{threatModelId}").FirstOrDefault();
+        if (directory is null)
         {
             return;
         }
 
-        Directory.Delete(directories.First(), true);
+        Directory.Delete(directory, true);
     }
 
     public async Task<byte[]?> GetTemplateAsync(ReportType reportType)

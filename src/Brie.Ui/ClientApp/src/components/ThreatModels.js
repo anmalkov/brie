@@ -18,23 +18,6 @@ const ThreatModels = () => {
         return deleteThreatModel(id);
     });
 
-
-    if (isLoading) {
-        return (
-            <div className="text-center">
-                <Spinner>
-                    Loading...
-                </Spinner>
-            </div>
-        );
-    }
-
-    if (isError) {
-        return (
-            <Alert color="danger">{error.message}</Alert >
-        );
-    }
-
     const getReportUrl = (id) => {
         return `api/threatmodels/${id}/report/archive`;
     }
@@ -50,6 +33,22 @@ const ThreatModels = () => {
             queryClient.refetchQueries('threatmodels', { force: true });
         }
         catch { }
+    }
+
+    if (isLoading) {
+        return (
+            <div className="text-center">
+                <Spinner>
+                    Loading...
+                </Spinner>
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <Alert color="danger">{error.message}</Alert >
+        );
     }
 
     return (
@@ -77,6 +76,7 @@ const ThreatModels = () => {
                                 <td>{t.updatedAt ? (new Date(t.updatedAt)).toLocaleDateString() : 'Never'}</td>
                                 <td>
                                     <div className="hstack gap-3 float-end">
+                                        <Button size="sm" outline color="success" onClick={() => navigate('/addthreatmodel', { state: { threatModel: t } })}><FiEdit2 /></Button>
                                         <Button size="sm" outline color="success" onClick={() => navigate('/threatmodelreport', { state: { id: t.id } })}><FiSearch /></Button>
                                         <a href={getReportUrl(t.id)} download className="btn btn-outline-success btn-sm"><FiDownload /></a>
                                         <Button size="sm" outline color="danger" onClick={() => deleteHandler(t.id)}><FiX /></Button>

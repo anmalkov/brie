@@ -11,6 +11,7 @@ public interface IReportsRepository
     Task<byte[]?> GetAsync(string threatModelId, ReportType reportType);
     Task<(byte[]? archiveContent, string fileName)> GetArchiveAsync(string threatModelId);
     void CreateReportDirectory(string threatModelId, string projectName);
+    void RenameAndCleanReportDirectory(string threatModelId, string projectName, IEnumerable<string>? keepImagesFileNames);
     Task CreateAsync(string threatModelId, string projectName, ReportType reportType, byte[] content);
     Task<bool> StoreFileAsync(string threatModelId, string fileName, byte[] content);
     Task<byte[]?> GetFileAsync(string threatModelId, string fileName);

@@ -21,7 +21,8 @@ namespace Brie.Ui.Handlers
         DateTime CreatedAt,
         DateTime? UpdatedAt,
         IEnumerable<DataflowAttributeDto> DataflowAttributes,
-        IEnumerable<RecommendationDto> Threats
+        IEnumerable<RecommendationDto> Threats,
+        IEnumerable<KeyValuePair<string, string>>? Images
     );
 
     public class GetThreatModelsHandler : IRequestHandler<GetThreatModelsRequest, IResult>
@@ -63,7 +64,8 @@ namespace Brie.Ui.Handlers
                 p.CreatedAt,
                 p.UpdatedAt,
                 p.DataflowAttributes.Select(MapDataflowAttributeToDto).ToArray(),
-                p.Threats.Select(MapRecommendationToDto).ToArray()
+                p.Threats.Select(MapRecommendationToDto).ToArray(),
+                p.Images
             )).ToArray();
         }
 

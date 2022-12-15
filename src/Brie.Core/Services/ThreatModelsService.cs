@@ -47,6 +47,11 @@ public class ThreatModelsService : IThreatModelsService
         return await _threatModelsRepository.GetAllAsync();
     }
 
+    public async Task<ThreatModel?> GetAsync(string id)
+    {
+        return await _threatModelsRepository.GetAsync(id);
+    }
+
     public async Task<Category?> GetCategoryAsync()
     {
         return await _memoryCache.GetOrCreateAsync(CategoryCacheKey, async entry =>
@@ -66,6 +71,12 @@ public class ThreatModelsService : IThreatModelsService
     {
         await _threatModelsRepository.CreateAsync(threatModel);
         _reportsRepository.CreateReportDirectory(threatModel.Id, threatModel.ProjectName);
+    }
+
+    public async Task UpdateAsync(ThreatModel threatModel)
+    {
+        await _threatModelsRepository.UpdateAsync(threatModel);
+        _reportsRepository.RenameAndCleanReportDirectory(threatModel.Id, threatModel.ProjectName, threatModel.Images?.Select(i => i.Value));
     }
 
     public async Task<string?> GetReportAsync(string threatModelId)
@@ -91,6 +102,11 @@ public class ThreatModelsService : IThreatModelsService
     public async Task StoreFileForReportAsync(string threatModelId, string fileName, byte[] content)
     {
         await _reportsRepository.StoreFileAsync(threatModelId, fileName, content);
+    }
+
+    public async Task<byte[]?> GetReportFileAsync(string threatModelId, string fileName)
+    {
+       return await _reportsRepository.GetFileAsync(threatModelId, fileName);
     }
 
     public async Task DeleteAsync(string id)

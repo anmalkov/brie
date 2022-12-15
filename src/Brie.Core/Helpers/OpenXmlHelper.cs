@@ -124,8 +124,7 @@ public static class OpenXmlHelper
 
         var imagePartType = System.IO.Path.GetExtension(fileName)[1..].ToLower() switch
         {
-            "jpg" => ImagePartType.Jpeg,
-            "jpeg" => ImagePartType.Jpeg,
+            "jpg" or "jpeg" => ImagePartType.Jpeg,
             "gif" => ImagePartType.Gif,
             _ => ImagePartType.Png
         };
