@@ -12,7 +12,7 @@ jobs:
       run: |
         release_url=$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/google/osv-scanner/releases/latest)
         latest_release=$(basename $release_url)
-        git clone -b v$latest_release -- https://github.com/google/osv-scanner.git $GITHUB_WORKSPACE/repo
+        git clone -b $latest_release -- https://github.com/google/osv-scanner.git $GITHUB_WORKSPACE/repo
     - name: Build image
       run: |
         cd $GITHUB_WORKSPACE/repo
