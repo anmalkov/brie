@@ -1,0 +1,25 @@
+name: OSVScan
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Clone latest release
+      run: |
+        release_url=$(curl -Ls -o /dev/null -w %{url_effective} https://github.com/google/osv-scanner/releases/latest)
+        latest_release=$(basename $release_url)
+        git clone -b v$latest_release -- https://github.com/google/osv-scanner.git $GITHUB_WORKSPACE/repo
+    - name: Build image
+      run: |
+        cd $GITHUB_WORKSPACE/repo
+        docker build -t osv-scanner:latest .
+    - name: Run scan
+      run: docker run -v $GITHUB_WORKSPACE:/data osv-scanner --lockfile=/data/brie/src/Brie.Ui/ClientApp/package-lock.json --json > $GITHUB_WORKSPACE/scan_results.json
+    - uses: actions/upload-artifact@v3
+      with:
+        name: osv-scanner-results
+        path: $GITHUB_WORKSPACE/scan_results.json
