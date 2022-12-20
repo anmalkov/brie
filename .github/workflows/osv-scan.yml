@@ -20,12 +20,7 @@ jobs:
     - name: Run scan
       continue-on-error: true
       run: docker run -v $GITHUB_WORKSPACE:/data osv-scanner --lockfile=/data/src/Brie.Ui/ClientApp/package-lock.json --json > $GITHUB_WORKSPACE/scan_results.json
-    - name: show results
-      run: |
-        cd $GITHUB_WORKSPACE
-        ls
-        cat $GITHUB_WORKSPACE/scan_results.json
     - uses: actions/upload-artifact@v3
       with:
         name: osv-scanner-results
-        path: $GITHUB_WORKSPACE/scan_results.json
+        path: ./scan_results.json
