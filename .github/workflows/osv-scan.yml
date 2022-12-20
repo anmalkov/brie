@@ -19,10 +19,12 @@ jobs:
         docker build -t osv-scanner:latest .
     - name: Run scan
       continue-on-error: true
+      run: docker run -v $GITHUB_WORKSPACE:/data osv-scanner --lockfile=/data/src/Brie.Ui/ClientApp/package-lock.json --json > $GITHUB_WORKSPACE/scan_results.json
+    - name: show results
       run: |
-        docker run -v $GITHUB_WORKSPACE:/data osv-scanner --lockfile=/data/src/Brie.Ui/ClientApp/package-lock.json --json > $GITHUB_WORKSPACE/scan_results.json
         cd $GITHUB_WORKSPACE
         ls
+        cat $GITHUB_WORKSPACE/scan_results.json
     - uses: actions/upload-artifact@v3
       with:
         name: osv-scanner-results
