@@ -1,9 +1,9 @@
 ﻿import React, { useState } from 'react';
-import { Spinner, ListGroup, Alert, Button, Badge, FormGroup, Label, Input, Row, Col, UncontrolledAlert, CloseButton } from 'reactstrap';
+import { Spinner, ListGroup, Alert, Button, Badge, FormGroup, Label, Input, Row, Col, UncontrolledAlert, CloseButton, Tooltip } from 'reactstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { fetchThreatModelCategory, createThreatModel, fetchThreatModelFiles, updateThreatModel } from '../fetchers/threatmodels';
-import { FiPlus, FiArrowLeft, FiCheck } from "react-icons/fi";
+import { FiPlus, FiArrowLeft, FiCheck, FiInfo } from "react-icons/fi";
 import Category from './Category';
 import { useEffect } from 'react';
 import './AddThreatModel.css';
@@ -171,6 +171,8 @@ const AddThreatModel = () => {
             dataflowAttributes.length === 0 || selectedRecommendationsCount === 0);
     }, [projectName, dataflowAttributes, selectedList]);
 
+    const [dataClassificationTooltipOpen, setDataClassificationTooltipOpen] = useState(false);
+    const dataClassificationTooltipToggle = () => setDataClassificationTooltipOpen(!dataClassificationTooltipOpen);
 
     if (isLoading) {
         return (
@@ -227,7 +229,7 @@ const AddThreatModel = () => {
                             <Label>Transport Protocol</Label>
                         </Col>
                         <Col className="ps-0">
-                            <Label>Data Classification</Label>
+                            <Label>Data Classification <FiInfo id="data-classification-info" /></Label>
                         </Col>
                         <Col className="ps-0">
                             <Label>Authentication</Label>
@@ -269,6 +271,15 @@ const AddThreatModel = () => {
                         </Row>
                     ))
                     }
+                    <Tooltip isOpen={dataClassificationTooltipOpen} target="data-classification-info" toggle={dataClassificationTooltipToggle}>
+                        <ul>
+                            <li><b>Sensitive</b><br/>Data that is to have the most limited access and requires a high degree of integrity. This is typically data that will do the most damage to the organization should it be disclosed. Personal data (including PII) falls into this category and includes any identifier, such as name, an identification number, location data, online identifier. This also includes data related to one or more factors specific to the physical, psychological, genetic, mental, economic, cultural, or social identity of an individual.</li>
+                            <li><b>Confidential</b><br/>Data that might be less restrictive within the company but might cause damage if disclosed.</li>
+                            <li><b>Private</b><br/>Private data is usually compartmental data that might not do the company damage but must be kept private for other reasons. Human resources data is one example of data that can be classified as private.</li>
+                            <li><b>Proprietary</b><br/>Proprietary data is data that is disclosed outside the company on a limited basis or contains information that could reduce the company's competitive advantage, such as the technical specifications of a new product.</li>
+                            <li><b>Public</b><br/>Public data is the least sensitive data used by the company and would cause the least harm if disclosed. This could be anything from data used for marketing to the number of employees in the company.</li>
+                        </ul>
+                    </Tooltip>
                 </div>
             </FormGroup>
             <FormGroup>
