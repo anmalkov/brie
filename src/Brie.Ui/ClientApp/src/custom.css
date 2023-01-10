@@ -20,3 +20,47 @@ code {
 svg {
     margin-top: -4px;
 }
+
+@media (prefers-color-scheme: dark) {
+
+    body {
+        background-color: #1a1a1a;
+        color: #afafaf;
+    }
+
+    .navbar-brand {
+        color: white;
+    }
+
+    .nav-link {
+        color: white !important;
+    }
+
+    nav.border-bottom {
+        border-bottom-color: #999999 !important;
+    }
+
+    table {
+        color: #afafaf !important;
+        border-color: #666666 !important;
+    }
+
+    table > thead {
+        color: #cccccc !important;
+    }
+
+    .bg-super-light {
+        background: #333333;
+    }
+
+    button.list-group-item {
+        background: #282828;
+        color: #afafaf;
+    }
+
+    input, select {
+        background-color: #333333 !important;
+        color: #afafaf !important;
+        border-color: #666666 !important;
+    }
+}
