@@ -22,27 +22,42 @@ svg {
 }
 
 @media (prefers-color-scheme: dark) {
+    .table {
+        --bs-table-hover-color: white;
+        --bs-table-hover-bg: #111111;
+        --bs-table-color: #afafaf;
+        --bs-table-bg: transparent;
+        --bs-table-border-color: #666666;
+    }
+
+    .list-group {
+        --bs-list-group-bg: #282828;
+        --bs-list-group-color: #afafaf;
+        --bs-list-group-action-hover-color: #cccccc;
+        --bs-list-group-action-hover-bg: #222222;
+        --bs-list-group-action-active-color: white;
+        --bs-list-group-action-active-bg: #111111;
+    }
+
+    .navbar {
+        --bs-navbar-brand-hover-color: #cccccc;
+        --bs-navbar-brand-color: white;
+        --bs-navbar-color: #cccccc;
+        --bs-navbar-hover-color: white;
+        --bs-navbar-active-color: white;
+    }
 
     body {
         background-color: #1a1a1a;
         color: #afafaf;
     }
 
-    .navbar-brand {
-        color: white;
-    }
-
-    .nav-link {
-        color: white !important;
+    nav.navbar-light {
+        background-color: #111111;
     }
 
     nav.border-bottom {
-        border-bottom-color: #999999 !important;
-    }
-
-    table {
-        color: #afafaf !important;
-        border-color: #666666 !important;
+        border-bottom-color: #333333 !important;
     }
 
     table > thead {
@@ -51,11 +66,6 @@ svg {
 
     .bg-super-light {
         background: #333333;
-    }
-
-    button.list-group-item {
-        background: #282828;
-        color: #afafaf;
     }
 
     input, select {
